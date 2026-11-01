@@ -177,17 +177,18 @@ const GAME_URL = 'https://baramutzero-netizen.github.io/barnfix/', SOGWI_URL = '
 
 // ───────── data ─────────
 // each place loses something different, and each time the fault sits a little closer to you
-const VENUES = ['시골 외양간', '동네 가게', '방송 스튜디오', '대기업', '청문회', '우리 집', '거울 앞'];
-const LOSE = [['소', '마리'], ['손님', '명'], ['시청자', '명'], ['고객', '명'], ['신뢰', '점'], ['가족과의 시간', '시간'], ['건강', '점']];
+const VENUES = ['시골 외양간', '동네 가게', '방송 스튜디오', '대기업', '청문회', 'AI 기업', '우리 집', '거울 앞'];
+const LOSE = [['소', '마리'], ['손님', '명'], ['시청자', '명'], ['고객', '명'], ['신뢰', '점'], ['자금', '억 원'], ['가족과의 시간', '시간'], ['건강', '점']];
 const CAUSE = [['후다닥!', '판자가 썩었다', '문이 열렸다'], ['주문 실수!', '불친절!', '머리카락!', '"다신 안 와요"'], ['말실수!', '"구독 취소"', '클립 박제!', '"실망입니다"'],
-  ['사고!', '정보 유출!', '"해지합니다"', '결함!'], ['논란!', '"기억나지 않습니다"', '"실망입니다"', '말 바꾸기!'], ['약속 깜빡!', '"또 늦었어?"', '기념일!', '"괜찮아…"'], ['밤샘!', '야식!', '"내일부터"', '또 밤샘!']];
-const HOLD = ['hanwoo', 'p_green', 'p_blue', 'p_suit', 'p_green', 'p_kid', 'heart'];   // default look of what you still have, per place
+  ['사고!', '정보 유출!', '"해지합니다"', '결함!'], ['논란!', '"기억나지 않습니다"', '"실망입니다"', '말 바꾸기!'], ['"다른 AI 쓰고 말지"', '"느리네"', '"왜캐 바보같음"', '"또 유료야?"', 'GPU 청구서!', '전기 요금!'], ['약속 깜빡!', '"또 늦었어?"', '기념일!', '"괜찮아…"'], ['밤샘!', '야식!', '"내일부터"', '또 밤샘!']];
+const HOLD = ['hanwoo', 'p_green', 'p_blue', 'p_suit', 'p_green', 'p_suit', 'p_kid', 'heart'];   // default look of what you still have, per place
 const GATE = [null,
   ['가게 창업', '외양간 일은 접고 가게를 차렸다. 이번엔 잘될 것 같다.'],
   ['방송 시작', '가게도 접고 방송을 켰다. 말만 잘하면 된다.'],
   ['대기업 입사', '방송도 접고 큰 회사에 들어갔다. 큰 회사니까 안전하다.'],
   ['청문회 출석', '내 이름이 불렸다. 잘 설명하면 된다.'],
-  ['집에 돌아옴', '물러나서 집에 왔다. 이제 좀 쉬면 된다.'],
+  ['AI 기업 창업', '물러난 김에 AI 회사를 세웠다. 이번엔 미래가 보인다.'],
+  ['집에 돌아옴', '회사를 정리하고 집에 왔다. 이제 좀 쉬면 된다.'],
   ['거울 앞에 섬', '오랜만에 거울 앞에 섰다. 아직 괜찮아 보인다.'],
 ];
 // 악단: five players per place; every one you hire keeps playing (like 소 귀에 경 읽기)
@@ -197,6 +198,7 @@ const BANDS = [
   [['donate', '후원 알림음', '띠링! 금액은 점점 줄어든다.'], ['lofi', '방송 BGM', '저작권 걱정 없는 로파이.'], ['dudung', '효과음 버튼', '두둥! 말실수 직전에 눌렀다.'], ['chatpop', '채팅 알림 뽁', '뽁뽁뽁. 채팅이 빠를수록 빨라진다.'], ['subbass', '구독 버튼 베이스', '구독, 좋아요, 알림 설정 베이스.']],
   [['holdmusic', '통화 대기 음악', '고객님의 전화는 매우 중요합니다.'], ['alarm', '경보음 신스', '삐뽀삐뽀. 이미 터진 뒤에 울린다.'], ['typing', '키보드 타건', '사과문을 쓰는 손이 제일 빠르다.'], ['copier', '복합기 리듬', '철컥철컥. 경위서를 백 부 뽑는다.'], ['boardroom', '회의실 브라스', '빰빠밤. 대책 회의 시작.']],
   [['gavel', '의사봉', '땅땅땅. 망치는 망치다.'], ['flash', '카메라 플래시', '찰칵찰칵. 고개 숙인 장면만 찍는다.'], ['timer', '발언 시간 비트', '30초 남았습니다. 30초 더 갑니다.'], ['murmur', '방청석 웅성임', '웅성웅성. 답변할 때마다 커진다.'], ['howl', '마이크 하울링', '삐이이. 아무도 끄지 않는다.']],
+  [['gpufan', 'GPU 팬 소음', '위이이잉. 세상에서 제일 비싼 화이트 노이즈.'], ['rackbeat', '서버 랙 비트', '깜빡깜빡. 램프마다 청구서가 달려 있다.'], ['keynote', '키노트 브라스', '빰빠밤! "One more model."'], ['clap', '투자 유치 박수', '짝짝짝. 슬라이드 세 장에 기립 박수.'], ['tts', '합성 음성 합창', '"좋은 질문입니다!"를 화음으로.']],
   [['tv', '거실 TV 소리', '아무도 안 보는 TV가 켜져 있다.'], ['lullaby', '자장가', '혼자 부르는 자장가.'], ['clock', '벽시계 째깍', '째깍째깍. 늦은 시간을 정확히 알려 준다.'], ['kettle', '주전자 휘파람', '삐이. 혼자 마시는 차.'], ['dishes', '설거지 달그락', '식은 저녁을 치우는 소리.']],
   [['heartbeat', '심장 박동 비트', '쿵쿵. 가장 오래 연주해 온 악단.'], ['breath', '숨소리 패드', '들이쉬고, 내쉬고.'], ['alarmbeep', '알람 합주', '삐삐삐. 다섯 개가 돌아가며 운다.'], ['secondhand', '손목시계 초침', '똑딱. 남은 시간을 센다.'], ['sighpad', '한숨 현악', '하아. 길고 낮은 화음.']],
 ].map(list => list.map(([id, n, d], i) => [id, n, d, { x: 1.25, layer: i + 1 }]));
@@ -242,6 +244,19 @@ const CH = [
         ['believers', '믿어 줬던 사람들', '"그래도 저 사람은" 하던 사람들.', { mk: 30, kind: 'p_blue' }]],
     a: [['aides', '보좌진', '대신 해명한다. 해명이 해명을 부른다.', { au: 30 }]],
     b: BANDS[4] },
+  { x: [['nextmodel', '차세대 AI 모델 출시', '"이번엔 진짜 다르다." 지난번에도 그랬다.', { x: 3 }, '적자 AI 기업'],
+        ['gpus', 'GPU 구입', '모델보다 GPU가 먼저 왔다. 전기 요금은 그다음에 왔다.', { x: 2.5 }],
+        ['datacenter', '데이터 센터 구입', '사막 한가운데에 지었다. 냉각수가 모자란다.', { x: 3 }],
+        ['freetier', '무료 서비스 제공', '무료라서 다 왔다. 무료라서 다 적자다.', { x: 2.5 }],
+        ['moremodels', '새로운 모델 추가', '모델 이름 뒤에 숫자를 하나 더 붙였다.', { x: 3 }],
+        ['paywall', '유료로 전환', '무료로 모은 사람들에게 청구서를 보냈다.', { x: 2.5 }],
+        ['bundle', '유료 플랜 통합', '플랜 일곱 개를 하나로 합쳤다. 가격도 합쳤다.', { x: 2.5 }],
+        ['ipo', 'IPO 상장 추진', '"적자지만 미래 가치가 있습니다."', { x: 3 }],
+        ['onepost', 'SNS로 한마디하기', '"AGI 다음 주 공개." 주가가 출렁이고 자금이 더 샜다.', { x: 3 }]],
+    m: [['investors', '투자자들', '슬라이드 세 장에 투자했다. 네 번째 장은 없다.', { mk: 50, kind: 'p_suit' }],
+        ['freeusers', '무료 구독자들', '결제 버튼은 한 번도 안 눌렀다. 서버는 매일 눌렀다.', { mk: 80, kind: 'p_blue' }]],
+    a: [['agents', 'AI 에이전트들', '사람 대신 일한다. 자금도 대신 태운다.', { au: 45 }]],
+    b: BANDS[5] },
   { x: [['sorrynote', '미안하다는 쪽지', '냉장고에 붙였다. 아이는 이미 잠들었다.', { x: 3 }, '쪽지 붙은 냉장고'],
         ['lategift', '늦은 선물', '생일 다음 날 샀다.', { x: 2.5 }],
         ['circle', '달력에 동그라미', '기념일이 지나고 나서 그렸다.', { x: 3 }],
@@ -250,7 +265,7 @@ const CH = [
     m: [['kids', '기다리는 아이들', '현관문 소리에 뛰어나온다. 오늘도 아니다.', { mk: 60, kind: 'p_kid' }],
         ['parents', '고향 부모님', '"바쁘면 안 와도 돼." 진심이 아니다.', { mk: 100, kind: 'p_grey' }]],
     a: [['spouse', '배우자', '대신 사과하고, 대신 데려가고, 대신 기다린다.', { au: 60 }]],
-    b: BANDS[5] },
+    b: BANDS[6] },
   { x: [['vitamins', '영양제 한 움큼', '밤샘 다음 날 털어 넣는다.', { x: 3 }, '포스트잇 붙은 거울'],
         ['gympass', '헬스장 1년권', '등록한 날이 마지막으로 간 날.', { x: 3 }],
         ['checkup', '건강검진 예약', '몸이 신호를 보낸 다음에 예약했다.', { x: 3 }],
@@ -259,7 +274,7 @@ const CH = [
     m: [['onebody', '하나뿐인 몸', '바꿀 수 없는 유일한 것.', { mk: 150, kind: 'heart' }],
         ['days', '남은 날들', '셀 수 있다는 걸 이제야 알았다.', { mk: 200, kind: 'heart' }]],
     a: [['alarms', '알람 다섯 개', '일어나라고 다섯 번 운다.', { au: 120 }]],
-    b: BANDS[6] },
+    b: BANDS[7] },
 ];
 const NEWS = [
   ['소 한 마리 이탈… 주인 "판자 대겠다"', '판자 덧댄 다음 날 담 넘어 또 이탈', '외양간 주변 발자국 <b>▲</b>'],
@@ -267,6 +282,7 @@ const NEWS = [
   ['방송 중 말실수 클립 조회수 <b>▲</b>', '사과 방송 동시 시청자, 사과 전의 절반', '"자필 사과문" 글씨체 분석 영상 등장'],
   ['서비스 장애 사과 보도자료… 같은 문장 재사용 논란', '보상 쿠폰 지급, 해지 문의 폭주', '재발 방지 TF 출범, 이름만 열한 번째'],
   ['청문회 답변 "기억나지 않습니다" 14회', '해명 자료 400쪽… "읽은 사람 없어"', '신뢰도 조사 <i>▼</i> 최저치'],
+  ['차세대 모델 발표회… 질문은 "그래서 언제 흑자?"', 'GPU 대금 결제일, 무료 사용자 신기록과 같은 날', 'IPO 추진 소식에 직원들 "월급은요?"', 'CEO "AGI 다음 주" 게시물에 자금 <i>▼</i>'],
   ['아이 "아빠 오늘 와?"… 오늘도 늦음', '냉장고 쪽지 7장째', '가족 여행 계획 세 번째 무산'],
   ['"내일부터" 포스트잇 31장째', '헬스장 1년권, 첫날 이후 출석 0', '걸음 수 오늘도 <i>412보</i>'],
 ];
@@ -285,7 +301,7 @@ CH.forEach((ch, v) => {
   }
   row += maxLen + 1.6;
 });
-addNode({ id: 'end', v: 6, type: 'end', n: '미리 고치기', d: '평생 잃고 나서 고쳤다. 이번만은 일이 생기기 전에 고쳐 본다.', parent: 'v6', eff: { end: 1 }, col: 0, row: row - 0.3 });
+addNode({ id: 'end', v: 7, type: 'end', n: '미리 고치기', d: '평생 잃고 나서 고쳤다. 이번만은 일이 생기기 전에 고쳐 본다.', parent: 'v7', eff: { end: 1 }, col: 0, row: row - 0.3 });
 const LAYER = {}; for (const n of NODES) if (n.eff.layer) LAYER[n.v * 10 + n.eff.layer] = n.id;
 
 function applyEff(s, n) { const e = n.eff; if (e.mk) s.mk += e.mk; if (e.x) s.x *= e.x; if (e.au) s.au += e.au; }
@@ -294,7 +310,10 @@ function applyEff(s, n) { const e = n.eff; if (e.mk) s.mk += e.mk; if (e.x) s.x 
   CH.forEach((ch, v) => {
     if (v) order.push(NODE['v' + v]);
     const L = Math.max(...['x', 'm', 'a', 'b'].map(k => (ch[k] || []).length));
-    for (let i = 0; i < L; i++) for (const k of ['x', 'm', 'a', 'b']) if (ch[k] && ch[k][i]) order.push(NODE[ch[k][i][0]]);
+    // bands come early: all five players are priced to arrive within the first ~60% of each place
+    const slot = []; for (const k of ['x', 'm', 'a']) (ch[k] || []).forEach((it, i) => slot.push([(i + 0.5) / L, NODE[it[0]]]));
+    ch.b.forEach((it, i) => slot.push([i / ch.b.length * 0.6, NODE[it[0]]]));
+    slot.sort((p, q) => p[0] - q[0]).forEach(([, n]) => order.push(n));
   });
   order.push(NODE.end);
   const s = { mk: 1, x: 1, au: 0 }, N = order.length;
@@ -309,16 +328,16 @@ function applyEff(s, n) { const e = n.eff; if (e.mk) s.mk += e.mk; if (e.x) s.x 
 })();
 
 // ───────── state ─────────
-const SAVE_KEY = 'barnfix-v1';
+const SAVE_KEY = 'barnfix-v2';
 let S, D;
-function fresh() { return { cheer: 0, owned: { v0: 1 }, order: [], lost: 0, fixed: 0, lostV: [0, 0, 0, 0, 0, 0, 0], total: 0, taps: 0, playMs: 0, ended: 0 }; }
-function load(d) { S = fresh(); try { const raw = d && d.save ? d.save : JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (raw) Object.assign(S, raw); } catch (e) {} if (!S.lostV) S.lostV = [S.lost, 0, 0, 0, 0, 0, 0]; }
+function fresh() { return { cheer: 0, owned: { v0: 1 }, order: [], lost: 0, fixed: 0, lostV: [0, 0, 0, 0, 0, 0, 0, 0], total: 0, taps: 0, playMs: 0, ended: 0 }; }
+function load(d) { S = fresh(); try { const raw = d && d.save ? d.save : JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (raw) Object.assign(S, raw); } catch (e) {} if (!S.lostV) S.lostV = [S.lost, 0, 0, 0, 0, 0, 0, 0]; }
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
 const owned = id => !!S.owned[id];
 function derived() {
   const s = { mk: 1, x: 1, au: 0, kinds: [['hanwoo', 1]] };
   for (const id of S.order) { const n = NODE[id]; if (!n) continue; applyEff(s, n); if (n.eff.mk) s.kinds.push([n.eff.kind || 'hanwoo', n.eff.mk]); }
-  s.venue = 0; for (let v = 6; v > 0; v--) if (owned('v' + v)) { s.venue = v; break; }
+  s.venue = 0; for (let v = 7; v > 0; v--) if (owned('v' + v)) { s.venue = v; break; }
   s.word = s.venue ? VENUES[s.venue] : '나무 외양간'; for (const id of S.order) if (NODE[id] && NODE[id].hl && NODE[id].v === s.venue) s.word = NODE[id].hl;
   // what you still have here: only this place's kinds
   const here = [[HOLD[s.venue], 1]]; for (const id of S.order) { const nd = NODE[id]; if (nd && nd.eff.mk && nd.v === s.venue) here.push([nd.eff.kind, nd.eff.mk]); }
@@ -403,7 +422,11 @@ function makeBg(v) {
     x.fillStyle = '#7a5a3a'; for (let i = 0; i < W; i += 14) x.fillRect(i, 0, 2, 150);
     x.fillStyle = '#2a3a52'; x.fillRect(178, 16, 130, 18); ptextTo(x, '청문회', 243, 18, '#f1ece0');
     floor('#8a6a4a', '#7a5a3a');
-  } else if (v === 5) { // 우리 집 거실 밤
+  } else if (v === 5) { // AI 기업: server hall
+    vgrad(x, '#120f24', '#1d1838', 0, 150);
+    for (let i = 0; i < 5; i++) { const rx = 168 + i * 30; x.fillStyle = '#26223e'; x.fillRect(rx, 26, 26, 120); x.fillStyle = '#1a1730'; for (let k = 0; k < 9; k++) x.fillRect(rx + 2, 30 + k * 12, 22, 9); }
+    floor('#2a2546', '#3a3460');
+  } else if (v === 6) { // 우리 집 거실 밤
     vgrad(x, '#3a3450', '#4a4060', 0, 150);
     x.fillStyle = '#5a4a6a'; for (let i = 0; i < W; i += 20) x.fillRect(i, 0, 1, 150);
     x.fillStyle = '#1a1a2a'; x.fillRect(196, 30, 44, 40); x.fillStyle = '#f3e08a'; for (let k = 0; k < 8; k++) x.fillRect(200 + (k * 13) % 36, 34 + (k * 7) % 32, 2, 2);
@@ -423,12 +446,12 @@ function bg(v) { return bgCache[v] || (bgCache[v] = makeBg(v)); }
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const FX = 6, FY = 114;
 // the thing you keep patching, per place: barn, shop front, stream monitor, office, hearing desk, fridge, mirror
-const OBJ = [{ x: 40, y: 76, w: 112, h: 74 }, { x: 40, y: 70, w: 112, h: 80 }, { x: 44, y: 66, w: 104, h: 64 }, { x: 46, y: 50, w: 100, h: 100 }, { x: 40, y: 92, w: 116, h: 58 }, { x: 60, y: 54, w: 64, h: 96 }, { x: 56, y: 40, w: 76, h: 100 }];
+const OBJ = [{ x: 40, y: 76, w: 112, h: 74 }, { x: 40, y: 70, w: 112, h: 80 }, { x: 44, y: 66, w: 104, h: 64 }, { x: 46, y: 50, w: 100, h: 100 }, { x: 40, y: 92, w: 116, h: 58 }, { x: 48, y: 46, w: 96, h: 104 }, { x: 60, y: 54, w: 64, h: 96 }, { x: 56, y: 40, w: 76, h: 100 }];
 let hammerT = -9, mooT = -9, enterT = -9, phase = 0, phaseT = 0, quietT = -1;
 const holes = [], runners = [], floats = [], returners = [];
 const COWK = ['hanwoo', 'holstein', 'heuku', 'buffalo', 'yak', 'white'];
 const PK = { p_green: { s: '#7fb069' }, p_red: { s: '#e5484d' }, p_blue: { s: '#4c8ae0' }, p_gold: { s: '#f3c34f' }, p_suit: { s: '#2a2a30', p: '#2a2a30' }, p_grey: { s: '#9aa3ad', h: '#d8d2c6' }, p_kid: { s: '#f3c34f', p: '#4c8ae0' } };
-const COSTUME = [null, { y: '#3a2a24', s: '#7fb069' }, { y: '#3a2a24', s: '#9a6ae0' }, { y: '#3a2a24', s: '#2a2a30' }, { y: '#6a6a70', s: '#2a2a30' }, { y: '#3a2a24', s: '#e8a33a' }, { y: '#3a2a24', s: '#c9d7e8', p: '#c9d7e8' }];
+const COSTUME = [null, { y: '#3a2a24', s: '#7fb069' }, { y: '#3a2a24', s: '#9a6ae0' }, { y: '#3a2a24', s: '#2a2a30' }, { y: '#6a6a70', s: '#2a2a30' }, { y: '#3a2a24', s: '#26262c', p: '#3a3a48' }, { y: '#3a2a24', s: '#e8a33a' }, { y: '#3a2a24', s: '#c9d7e8', p: '#c9d7e8' }];
 function dspr(c, x, y, k = 2) { ctx.drawImage(c, Math.round(x), Math.round(y), c.width * k, c.height * k); }
 function drawKind(k, x, y) { if (COWK.includes(k)) ctx.drawImage(spr('cow_' + k), Math.round(x), Math.round(y)); else if (k === 'heart') dspr(spr('heart'), x + 3, y + 6, 2); else dspr(spr('person', PK[k] || {}), x + 4, y - 1, 2); }
 function kindIcon(k) { return COWK.includes(k) ? ['cow_' + k] : k === 'heart' ? ['heart'] : ['person', PK[k] || {}]; }
@@ -444,7 +467,8 @@ function drawPatch(v, i, x, y) {
   else if (v === 2) { ctx.fillStyle = s ? '#1b1418' : '#e5484d'; ctx.fillRect(x, y, 14, 5); ctx.fillStyle = '#f1ece0'; ctx.fillRect(x + 2, y + 2, 9, 1); }
   else if (v === 3) { ctx.fillStyle = '#f1ece0'; ctx.fillRect(x, y, 9, 11); ctx.fillStyle = '#9aa3ad'; for (let k = 0; k < 4; k++) ctx.fillRect(x + 1, y + 2 + k * 2, 7, 1); if (s === 1) { ctx.fillStyle = '#3d6fb8'; ctx.fillRect(x, y, 9, 2); } }
   else if (v === 4) { ctx.fillStyle = s ? '#f1ece0' : '#e4ddd0'; ctx.fillRect(x, y, 12, 3); ctx.fillRect(x + 1, y - 2, 12, 2); ctx.fillStyle = '#9aa3ad'; ctx.fillRect(x + 2, y + 1, 8, 1); }
-  else if (v === 5 || v === 6) { ctx.fillStyle = NOTE[i % 4]; ctx.fillRect(x, y, 9, 9); ctx.fillStyle = '#5a5a66'; ctx.fillRect(x + 1, y + 3, 6, 1); ctx.fillRect(x + 1, y + 5, 4, 1); if (v === 6 && s === 2) { ctx.fillStyle = '#e8c09a'; ctx.fillRect(x - 2, y + 9, 12, 3); ctx.fillStyle = '#c8a07a'; ctx.fillRect(x + 3, y + 9, 2, 3); } }
+  else if (v === 5) { ctx.fillStyle = s === 1 ? '#e5484d' : '#f1ece0'; ctx.fillRect(x, y, 11, 8); ctx.fillStyle = s === 1 ? '#fff8d8' : '#9aa3ad'; ctx.fillRect(x + 1, y + 2, 9, 1); ctx.fillRect(x + 1, y + 4, 6, 1); if (s === 2) { ctx.fillStyle = '#3a8a4a'; ctx.fillRect(x, y + 6, 11, 2); } }
+  else if (v === 6 || v === 7) { ctx.fillStyle = NOTE[i % 4]; ctx.fillRect(x, y, 9, 9); ctx.fillStyle = '#5a5a66'; ctx.fillRect(x + 1, y + 3, 6, 1); ctx.fillRect(x + 1, y + 5, 4, 1); if (v === 7 && s === 2) { ctx.fillStyle = '#e8c09a'; ctx.fillRect(x - 2, y + 9, 12, 3); ctx.fillStyle = '#c8a07a'; ctx.fillRect(x + 3, y + 9, 2, 3); } }
 }
 function drawObject(v, now, clean) {
   const o = OBJ[v];
@@ -474,15 +498,19 @@ function drawObject(v, now, clean) {
     ctx.fillStyle = '#f1ece0'; ctx.fillRect(o.x + 38, o.y - 16, 40, 12); ptext(ctx, '증인', o.x + 58, o.y - 17, '#2a1a12', 'center');
     ctx.fillStyle = '#2a2a30'; ctx.fillRect(o.x + 56, o.y - 30, 2, 14); ctx.fillRect(o.x + 53, o.y - 32, 8, 3);
   } else if (v === 5) {
+    ctx.fillStyle = '#1a1730'; ctx.fillRect(o.x, o.y, o.w, o.h); ctx.fillStyle = '#2e2950'; ctx.fillRect(o.x + 2, o.y + 2, o.w - 4, o.h - 4);
+    for (let k = 0; k < 10; k++) { ctx.fillStyle = '#14122a'; ctx.fillRect(o.x + 6, o.y + 6 + k * 10, o.w - 12, 7); ctx.fillStyle = (Math.floor(now / 200) + k) % 3 ? '#7fb069' : '#b07cff'; ctx.fillRect(o.x + o.w - 12, o.y + 8 + k * 10, 2, 2); }
+    ctx.fillStyle = '#0d0b1a'; ctx.fillRect(o.x + 8, o.y - 16, 80, 13); ptext(ctx, '남은 자금 ' + Math.max(0, 99 - ((S.lostV[5] || 0) % 100)) + '%', o.x + 48, o.y - 17, '#e5484d', 'center');
+  } else if (v === 6) {
     ctx.fillStyle = '#d8dce0'; ctx.fillRect(o.x, o.y, o.w, o.h); ctx.fillStyle = '#b8bcc0'; ctx.fillRect(o.x, o.y + 34, o.w, 2); ctx.fillStyle = '#9aa3ad'; ctx.fillRect(o.x + o.w - 8, o.y + 10, 3, 16); ctx.fillRect(o.x + o.w - 8, o.y + 44, 3, 22);
     ptext(ctx, '23:47', 300, 8, '#e5484d', 'right');
   } else {
     ctx.fillStyle = '#7a5a3a'; ctx.fillRect(o.x - 4, o.y - 4, o.w + 8, o.h + 8); ctx.fillStyle = '#9ac0d8'; ctx.fillRect(o.x, o.y, o.w, o.h); ctx.fillStyle = '#c0dcec'; for (let k = 0; k < 20; k++) ctx.fillRect(o.x + 6 + k * 2, o.y + 40 - k * 2, 2, 2);
-    ctx.globalAlpha = 0.6; dspr(spr('farmer', COSTUME[6]), o.x + 28, o.y + 40); ctx.globalAlpha = 1;
+    ctx.globalAlpha = 0.6; dspr(spr('farmer', COSTUME[7]), o.x + 28, o.y + 40); ctx.globalAlpha = 1;
   }
   if (clean) return;
   const n = phase === 1 ? 120 : Math.min(S.lostV[v] || 0, 120);
-  for (let i = 0; i < n; i++) { const h = holes.find(q => q.i === i && q.v === v && now - q.t0 < 260); const p = patchPos(i, v); if (h) { ctx.fillStyle = v === 6 ? '#e5484d' : '#1b1418'; ctx.fillRect(p.x, p.y, 10, 8); } else drawPatch(v, i, p.x, p.y); }
+  for (let i = 0; i < n; i++) { const h = holes.find(q => q.i === i && q.v === v && now - q.t0 < 260); const p = patchPos(i, v); if (h) { ctx.fillStyle = v === 7 ? '#e5484d' : '#1b1418'; ctx.fillRect(p.x, p.y, 10, 8); } else drawPatch(v, i, p.x, p.y); }
 }
 function draw(now) {
   const v = phase >= 3 ? 0 : D.venue;
@@ -519,8 +547,10 @@ function props(v, now) {
   if (v === 2) { const chat = ['ㅋㅋㅋ', '방금 뭐라고?', '클립 땄다', '구독 취소', '실망입니다', '사과해']; ctx.fillStyle = 'rgba(10,8,20,.7)'; ctx.fillRect(176, 26, 136, 44); for (let k = 0; k < 3; k++) ptext(ctx, chat[(Math.floor(now / 900) + k) % chat.length], 180, 27 + k * 14, '#c9d0f0'); }
   if (v === 3 && owned('pressrel')) { ctx.fillStyle = '#0d1018'; ctx.fillRect(170, 20, 140, 13); ptext(ctx, '"깊이 사과드립니다" ×' + (12 + blink), 240, 20, '#f1ece0', 'center'); }
   if (v === 4 && owned('flash') && Math.random() < 0.06) { ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillRect(0, 0, W, H); }
-  if (v === 5) { ctx.fillStyle = 'rgba(10,8,20,.6)'; ctx.fillRect(176, 82, 130, 13); ptext(ctx, blink ? '"아빠 오늘 와?"' : '"엄마 언제 와?"', 241, 82, '#f3e08a', 'center'); }
-  if (v === 6 && owned('smartwatch')) { ctx.fillStyle = '#0d1018'; ctx.fillRect(196, 48, 96, 13); ptext(ctx, '오늘 걸음 412보', 244, 48, '#7fb069', 'center'); }
+  if (v === 5) { const tags = []; if (owned('nextmodel')) tags.push(['모델 v' + (7 + Math.floor(now / 3000) % 9) + ' 출시!', '#b07cff']); if (owned('freetier')) tags.push(['무료 사용자 ▲' + fmt(1e4 + now / 7 | 0), '#7fb069']); if (owned('paywall')) tags.push(['무료 플랜 종료 안내', '#e8a33a']); if (owned('bundle')) tags.push(['통합 플랜 월 9.9만 원', '#c9d7e8']); if (owned('ipo')) tags.push(['IPO 추진 중', '#f3c34f']); if (owned('onepost')) tags.push(['"AGI 다음 주"', '#e5484d']);
+    if (tags.length) { const [t, c] = tags[Math.floor(now / 1300) % tags.length]; ctx.fillStyle = '#0d0b1a'; ctx.fillRect(170, 6, 140, 13); ptext(ctx, t, 240, 6, c, 'center'); } }
+  if (v === 6) { ctx.fillStyle = 'rgba(10,8,20,.6)'; ctx.fillRect(176, 82, 130, 13); ptext(ctx, blink ? '"아빠 오늘 와?"' : '"엄마 언제 와?"', 241, 82, '#f3e08a', 'center'); }
+  if (v === 7 && owned('smartwatch')) { ctx.fillStyle = '#0d1018'; ctx.fillRect(196, 48, 96, 13); ptext(ctx, '오늘 걸음 412보', 244, 48, '#7fb069', 'center'); }
 }
 
 // ───────── sound (all synthesized live) ─────────
@@ -594,23 +624,34 @@ function scurry(t, vol) { for (let k = 0; k < 4; k++) noise(t + k * 0.07, 0.03, 
 function chime(t, notes, vol) { notes.forEach((m, i) => osc('sine', mtof(m), t + i * 0.06, 0.4, sfx, vol)); }
 
 const STEP8 = 0.14;
+const PGAIN = {1:1,2:2.4,3:0.91,4:3.02,5:1,11:1.36,12:0.5,13:11.35,14:2.6,15:3.67,21:3.27,22:0.52,23:1.14,24:6.38,25:1,31:3.05,32:3.67,33:7.08,34:1.74,35:1,41:1,42:7.08,43:0.63,44:6.76,45:4.95,51:5.25,52:10.0,53:1.16,54:3.98,55:1,61:12,62:1,63:12,64:3.63,65:2.26,71:0.5,72:2.92,73:7.33,74:12,75:1};   // per-player loudness lift, from tools/measure_band.js (target about -32 dB, loud ones trimmed to -26 dB)
 const CHORDS = [[48, [60, 64, 67]], [43, [59, 62, 67]], [45, [57, 60, 64]], [41, [57, 60, 65]]];
 function schedule() { if (!AC) return; while (nextStep < AC.currentTime + 0.12) { playStep(nextStep, step, bar); nextStep += STEP8; step++; if (step === 8) { step = 0; bar++; } } }
 function playStep(t, s, b) {
   if (S.ended) return;
   // every band member you ever hired keeps playing at full volume
-  for (let v = D.venue; v >= 0; v--) { const P = [0, 1, 2, 3, 4, 5].map(k => k > 0 && owned(LAYER[v * 10 + k])); if (v === D.venue || P.some(Boolean)) arrange(v, t, s, b, v === D.venue, P); }
+  // each player goes through its own gain so quiet parts can be lifted to the same loudness (PGAIN, measured offline)
+  const main = music, NONE = [false, false, false, false, false, false];
+  for (let v = D.venue; v >= 0; v--) {
+    if (v === D.venue) arrange(v, t, s, b, true, NONE, false);
+    let has = false;
+    for (let k = 1; k <= 5; k++) { if (!owned(LAYER[v * 10 + k])) continue; has = true; const only = NONE.slice(); only[k] = true; music = partBus(v, k); arrange(v, t, s, b, false, only, false); music = main; }
+    if (has) arrange(v, t, s, b, false, NONE, true);   // the shared kick/bass that comes in once any player is hired
+  }
 }
-function arrange(v, t, s, b, base, P) {
-  const [root, chord] = CHORDS[Math.floor(b / 2) % 4], one = s === 0, half = s === 4, back = s === 2 || s === 6, any = P.some(Boolean);
+const pbus = {};
+function partBus(v, k) { const id = v * 10 + k; if (!pbus[id]) { pbus[id] = AC.createGain(); pbus[id].gain.value = (PGAIN[id] || 1); pbus[id].connect(music); } return pbus[id]; }
+function arrange(v, t, s, b, base, P, any) {
+  const [root, chord] = CHORDS[Math.floor(b / 2) % 4], one = s === 0, half = s === 4, back = s === 2 || s === 6;
   const swell = (ff, q, ftype, peak, len) => { const sb = AC.createBufferSource(), f = AC.createBiquadFilter(), gg = AC.createGain(); sb.buffer = NOISE; sb.loop = true; f.type = ftype; f.frequency.value = ff; f.Q.value = q; gg.gain.setValueAtTime(0.0001, t); gg.gain.exponentialRampToValueAtTime(peak, t + len / 2); gg.gain.exponentialRampToValueAtTime(0.0001, t + len); sb.connect(f); f.connect(gg); gg.connect(music); sb.start(t); sb.stop(t + len + 0.1); };
   if (v === 0) { if (base && (one || half)) wood(t, one ? 600 : 480, 0.3); if (P[1] && (s === 3 || s === 6 || s === 7)) wood(t, 880, 0.22); if (P[2] && one && b % 2 === 0) moo(t, 0.09, music); if (P[3]) { if (one || half) wood(t, 260, 0.45); if (back) noise(t, 0.06, music, 0.12, 'bandpass', 900, 1); } if (P[4] && (s === 2 || s === 6)) { osc('square', 820, t, 0.12, music, 0.025, 0.001); osc('square', 545, t, 0.12, music, 0.025, 0.001); } if (P[5]) { noise(t, 0.05, music, 0.06, 'lowpass', 220); if (one || s === 5) bass(t, root - 12, 0.25, 0.22, 260); } }
   if (v === 1) { if (base && one) wood(t, 700, 0.2); if (P[1] && one && b % 2 === 0) { osc('sine', 1568, t, 0.6, music, 0.06); osc('sine', 1319, t + 0.3, 0.8, music, 0.06); } if (P[2]) { if (s === 0 || s === 3 || s === 6) beep(t, 2000, 0.02, 0.03, music); if (one || half) kick(t, 0.45); } if (P[3]) noise(t, 0.03, music, 0.02 + Math.random() * 0.03, 'highpass', 6000); if (P[4] && one && b % 4 === 2) { const o = osc('sawtooth', 70, t, 0.9, music, 0.08, 0.05); o.frequency.linearRampToValueAtTime(110, t + 0.4); o.frequency.linearRampToValueAtTime(60, t + 0.9); } if (P[5] && s % 2 === 0 && b % 2 === 0) osc('square', mtof(chord[(s / 2) % 3] + 12), t, 0.12, music, 0.03, 0.002); }
   if (v === 2) { if (base && s % 2 === 0) hat(t, 0.03); if (P[1] && one && b % 4 === 0) [72, 76, 79, 84].forEach((n, k) => osc('triangle', mtof(n), t + k * 0.07, 0.25, music, 0.05)); if (P[2]) { if (one) rhodes(t, chord, 1.0, 0.05); if (one || s === 5) kick(t, 0.4); if (half) snare(t, 0.12); } if (P[3] && one && b % 4 === 3) brass(t, [root, root + 7], 0.5, 0.1); if (P[4] && !one && Math.random() < 0.35) { const o = osc('square', 1400 + Math.random() * 400, t, 0.03, music, 0.03, 0.001); o.frequency.exponentialRampToValueAtTime(2600, t + 0.03); } if (P[5] && (one || s === 3 || half)) bass(t, root - 12, 0.2, 0.22, 400); }
   if (v === 3) { if (base && back) snare(t, 0.15); if (P[1] && s % 2 === 0) osc('square', mtof(chord[(s / 2 + b) % 3] + 12), t, 0.2, music, 0.02); if (P[2] && one && b % 2 === 0) { osc('square', 988, t, 0.25, music, 0.03); osc('square', 784, t + 0.28, 0.25, music, 0.03); } if (P[3]) noise(t, 0.015, music, 0.04 + Math.random() * 0.04, 'highpass', 4000); if (P[4]) printer(t, one || half ? 0.2 : 0.08); if (P[5] && one && b % 2 === 1) brass(t, chord, 0.5, 0.08); if (any) { if (one || half) kick(t, 0.5); bass(t, root - 12 + (s >= 4 ? 7 : 0), STEP8 * 0.8, 0.2); } }
   if (v === 4) { if (base && one) timpani(t, root - 12, 0.3); if (P[1] && one) for (let k = 0; k < 3; k++) wood(t + k * 0.09, 640, 0.3); if (P[2] && (s === 3 || s === 7) && Math.random() < 0.6) noise(t, 0.03, music, 0.15, 'highpass', 5000); if (P[3]) { if (half) kick(t, 0.5); if (back) snare(t, 0.2); } if (P[4] && one && b % 2 === 0) swell(500, 2, 'bandpass', 0.07, STEP8 * 14); if (P[5] && one && b % 4 === 0) { const o = osc('sine', 2200, t, 1.2, music, 0.02, 0.4); o.frequency.linearRampToValueAtTime(2350, t + 1.2); } }
-  if (v === 5) { if (base && one) wood(t, 420, 0.15); if (P[1] && Math.random() < 0.3) noise(t, 0.12, music, 0.05, 'bandpass', 600 + Math.random() * 900, 4); if (P[2] && (one || half)) osc('sine', mtof(chord[(b + (half ? 1 : 0)) % 3] + 12), t, 0.55, music, 0.07, 0.04); if (P[3] && s % 2 === 0) beep(t, s % 4 ? 1500 : 1800, 0.015, 0.02, music); if (P[4] && one && b % 4 === 1) { const o = osc('sine', 1700, t, 1.0, music, 0.03, 0.4); o.frequency.linearRampToValueAtTime(1900, t + 1.0); } if (P[5] && Math.random() < 0.25) wood(t, 1800 + Math.random() * 600, 0.08); }
-  if (v === 6) { if (base && one) osc('sine', mtof(root - 12), t, 0.9, music, 0.15, 0.03); if (P[1] && (s === 0 || s === 1)) kick(t, s ? 0.3 : 0.55); if (P[2] && one && b % 2 === 0) swell(900, 0.7, 'lowpass', 0.08, STEP8 * 15); if (P[3] && b % 2 === 0 && s < 3) beep(t, 2600, 0.025, 0.06, music); if (P[4] && s % 2 === 0) beep(t, 3200, 0.012, 0.01, music); if (P[5] && one && b % 4 === 0) strings(t, chord, STEP8 * 30, 0.05); }
+  if (v === 5) { if (base && one) kick(t, 0.35); if (P[1] && one && b % 2 === 0) swell(420, 1.4, 'bandpass', 0.08, STEP8 * 15); if (P[2]) { hat(t, s % 2 ? 0.03 : 0.05); if (Math.random() < 0.25) beep(t, mtof([84, 88, 91][Math.floor(Math.random() * 3)]), 0.02, 0.02, music); } if (P[3] && one && b % 4 === 0) brass(t, chord.map(m => m + 12), 0.6, 0.09); if (P[4] && (s === 3 || s === 7) && b % 2) clap(t, 0.2); if (P[5] && one && b % 2 === 1) { const f = AC.createBiquadFilter(), f2 = AC.createBiquadFilter(), gg = AC.createGain(); f.type = 'bandpass'; f.frequency.value = 800; f.Q.value = 5; f2.type = 'bandpass'; f2.frequency.value = 1200; f2.Q.value = 6; gg.gain.setValueAtTime(0.0001, t); gg.gain.exponentialRampToValueAtTime(0.12, t + 0.15); gg.gain.exponentialRampToValueAtTime(0.0001, t + STEP8 * 15); f.connect(gg); f2.connect(gg); gg.connect(music); chord.forEach(m => [0, 7].forEach(dt => { const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = mtof(m); o.detune.value = dt; o.connect(f); o.connect(f2); o.start(t); o.stop(t + STEP8 * 15 + 0.1); })); } if (any) bass(t, root - 12 + (s >= 4 ? 7 : 0), STEP8 * 0.8, 0.18, 300); }
+  if (v === 6) { if (base && one) wood(t, 420, 0.15); if (P[1] && Math.random() < 0.3) noise(t, 0.12, music, 0.05, 'bandpass', 600 + Math.random() * 900, 4); if (P[2] && (one || half)) osc('sine', mtof(chord[(b + (half ? 1 : 0)) % 3] + 12), t, 0.55, music, 0.07, 0.04); if (P[3] && s % 2 === 0) beep(t, s % 4 ? 1500 : 1800, 0.015, 0.02, music); if (P[4] && one && b % 4 === 1) { const o = osc('sine', 1700, t, 1.0, music, 0.03, 0.4); o.frequency.linearRampToValueAtTime(1900, t + 1.0); } if (P[5] && Math.random() < 0.25) wood(t, 1800 + Math.random() * 600, 0.08); }
+  if (v === 7) { if (base && one) osc('sine', mtof(root - 12), t, 0.9, music, 0.15, 0.03); if (P[1] && (s === 0 || s === 1)) kick(t, s ? 0.3 : 0.55); if (P[2] && one && b % 2 === 0) swell(900, 0.7, 'lowpass', 0.08, STEP8 * 15); if (P[3] && b % 2 === 0 && s < 3) beep(t, 2600, 0.025, 0.06, music); if (P[4] && s % 2 === 0) beep(t, 3200, 0.012, 0.01, music); if (P[5] && one && b % 4 === 0) strings(t, chord, STEP8 * 30, 0.05); }
 }
 
 // ───────── play ─────────
@@ -738,7 +779,7 @@ async function startEnding() {
   line('마지막 틈까지 막았다.'); if (AC) for (let k = 0; k < 6; k++) bang(AC.currentTime + k * 0.12, 0.25); await sleep(1600);
   line('대책은 완벽해졌다.'); await sleep(1600);
   phase = 2; phaseT = performance.now(); if (AC) { for (let k = 0; k < 4; k++) scurry(AC.currentTime + k * 0.3, 0.1); }
-  box.innerHTML = ''; line('그사이 소도, 손님도, 시청자도, 고객도,'); line('신뢰도, 가족과의 시간도, 건강도 떠났다.'); await sleep(2800);
+  box.innerHTML = ''; line('그사이 소도, 손님도, 시청자도, 고객도, 신뢰도,'); line('자금도, 가족과의 시간도, 건강도 떠났다.'); await sleep(2800);
   line('…지킬 게 없었다.', true); quietT = performance.now(); await sleep(2800);
   box.innerHTML = ''; line('그래서 처음으로,'); await sleep(1100);
   line('일이 생기기 전에 고쳐 보기로 했다.'); if (AC) for (let k = 0; k < 4; k++) bang(AC.currentTime + k * 0.25, 0.3);
@@ -770,7 +811,7 @@ function makeCard() {
 function showResult() {
   const ms = S.playMs, m = Math.floor(ms / 60000), s = Math.floor(ms / 1000) % 60;
   const url = makeCard().toDataURL('image/png');
-  const brag = `소 잃고 외양간 고친다 ${m}분 ${s}초 만에 끝냈다. 소, 손님, 시청자, 고객, 신뢰, 가족과의 시간, 건강까지 ${fmt(S.lost)}번 잃고 나서야 고쳤다. 미리 막은 건 딱 한 번.\n` + GAME_URL;
+  const brag = `소 잃고 외양간 고친다 ${m}분 ${s}초 만에 끝냈다. 소, 손님, 시청자, 고객, 신뢰, 자금, 가족과의 시간, 건강까지 ${fmt(S.lost)}번 잃고 나서야 고쳤다. 미리 막은 건 딱 한 번.\n` + GAME_URL;
   $('resultBox').innerHTML = `<section class="result"><h3>사후 보고서</h3><dl>
     <dt>플레이 시간</dt><dd>${m}분 ${s}초</dd>${LOSE.map(([w, u], v) => `<dt>잃은 ${w}</dt><dd>${fmt(S.lostV[v] || 0)}${u}</dd>`).join('')}
     <dt>미리 막은 일</dt><dd>마지막에 한 번</dd><dt>직접 두드린 횟수</dt><dd>${S.taps.toLocaleString('ko-KR')}번</dd><dt>얻은 교훈</dt><dd>${fmt(S.total)}</dd></dl>
