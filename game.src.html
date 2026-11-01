@@ -1,0 +1,828 @@
+<title>소 잃고 외양간 고친다</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/*__FONTS__*/
+/* layout: phone-first app with three tabs — 현장 (scene + hammer), 대책도 (node tree), 설정 */
+:root {
+  --ink: #1b1512; --panel: #271e19; --line: #3a2d25; --cream: #f2e6cf; --dim: #a8968a; --faint: #7d6d62;
+  --acorn: #e8a33a; --up: #e5484d; --down: #4c8ae0; --leaf: #7fb069;
+  --f-disp: 'Galmuri14', 'Galmuri11', monospace; --f-body: 'Galmuri11', monospace;
+  color-scheme: dark;
+}
+html, body { background: var(--ink); color: var(--cream); }
+body { font: 12px/1.6 var(--f-body); -webkit-font-smoothing: none; }
+button { font: inherit; color: inherit; }
+.wrap { max-width: 540px; margin: 0 auto; padding-block: 10px 90px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 10px; }
+header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+h1 { font: 24px/1.2 var(--f-disp); margin: 0; color: var(--acorn); letter-spacing: 1px; }
+.han { color: var(--dim); letter-spacing: 3px; }
+.ticker { overflow: hidden; white-space: nowrap; border-block: 2px solid var(--line); background: #120e0c; padding: 3px 0; }
+.ticker span { display: inline-block; padding-left: 20%; animation: tick 46s linear infinite; }
+.ticker b { color: var(--up); font-weight: normal; } .ticker i { color: var(--down); font-style: normal; }
+@keyframes tick { to { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) { .ticker span { animation: none; padding-left: 0; } }
+.board { background: var(--panel); border: 2px solid var(--line); padding: 8px 12px 6px; display: grid; gap: 2px; text-align: center; }
+.board .lbl { color: var(--dim); letter-spacing: 2px; }
+.board .big { font: 30px/1.2 var(--f-disp); text-wrap: balance; }
+.board .fine { color: var(--faint); }
+.stage { position: relative; background: #000; border: 2px solid #000; line-height: 0; }
+canvas#cv { width: 100%; image-rendering: pixelated; image-rendering: crisp-edges; display: block; touch-action: manipulation; cursor: pointer; margin: 0 auto; }
+.stats { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 2px 10px; }
+.cheer { font: 30px/1 var(--f-disp); color: var(--acorn); font-variant-numeric: tabular-nums; }
+.cheer small { font: 12px var(--f-body); color: var(--dim); margin-left: 4px; }
+.rate { text-align: right; color: var(--dim); font-variant-numeric: tabular-nums; }
+.rate b { color: var(--leaf); font-weight: normal; }
+.tapbtn { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 10px; font: 15px var(--f-disp); color: var(--ink); background: var(--acorn); border: 0; box-shadow: inset 0 -4px 0 #8d5a22, 0 0 0 2px #000; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.tapbtn:active { transform: translateY(2px); box-shadow: inset 0 -2px 0 #8d5a22, 0 0 0 2px #000; }
+button:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
+.tapbtn canvas { height: 48px; image-rendering: pixelated; }
+.tapbtn .next { font: 12px var(--f-body); opacity: .75; }
+h2 { font: 15px var(--f-disp); margin: 4px 0 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+h2 small, h2 button.link { font: 12px var(--f-body); color: var(--dim); }
+button.link { background: none; border: 0; padding: 0; cursor: pointer; color: var(--acorn) !important; text-decoration: underline; text-underline-offset: 3px; }
+.list { display: flex; flex-direction: column; gap: 6px; }
+.upg { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; background: var(--panel); border: 2px solid var(--line); padding: 7px 10px; }
+.upg .nm { min-width: 0; }
+.chip { display: inline-block; margin-left: 6px; padding: 0 5px; background: #1b1512; color: var(--leaf); }
+.chip.up { color: var(--up); }
+.upg .ds { grid-column: 1; color: var(--dim); min-width: 0; }
+.buy { grid-row: 1 / span 2; grid-column: 2; min-width: 86px; padding: 8px; color: var(--ink) !important; background: var(--leaf); border: 0; box-shadow: 0 0 0 2px #000; cursor: pointer; font-variant-numeric: tabular-nums; }
+.buy:disabled { background: #4a3d34; color: #8d7d70 !important; cursor: default; }
+.upg.venue { border-color: var(--acorn); } .upg.venue .buy:not(:disabled) { background: var(--acorn); }
+.upg.end { border-color: var(--up); } .upg.end .buy:not(:disabled) { background: var(--up); color: var(--cream) !important; }
+.ending { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; padding: 8px; line-height: 1.5; pointer-events: none; text-align: center; }
+.ending .ln { font: 15px var(--f-disp); background: rgba(10,8,6,.82); padding: 1px 8px; text-shadow: 2px 2px 0 #000; }
+.ending .ln.big { font-size: 30px; color: var(--up); }
+.result { background: var(--panel); border: 2px solid var(--up); padding: 12px; display: grid; gap: 8px; }
+.result h3 { font: 30px var(--f-disp); margin: 0; color: var(--acorn); }
+.result dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; }
+.result dt { color: var(--dim); } .result dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.result img { width: 100%; image-rendering: pixelated; border: 2px solid #000; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { font: 12px var(--f-body); padding: 8px 12px; background: var(--panel); border: 2px solid var(--line); cursor: pointer; text-decoration: none; color: var(--cream); display: inline-block; }
+.btn.main { background: var(--acorn); color: var(--ink); border-color: #000; font: 15px var(--f-disp); }
+.hint { color: var(--faint); }
+.xp { display: grid; gap: 4px; border-top: 2px dashed var(--line); padding-top: 10px; justify-items: start; }
+.xp small { color: var(--dim); } .xp b { font: 15px var(--f-disp); font-weight: normal; color: var(--acorn); } .xp span { color: var(--dim); }
+.xp .btn { margin-top: 4px; background: var(--leaf); color: var(--ink); border-color: #000; }
+/* tabs */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: #120e0c; border-top: 2px solid var(--line); display: flex; justify-content: center; padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+nav.tabs button { flex: 1; max-width: 180px; padding: 10px 4px 9px; background: none; border: 0; color: var(--dim); font: 15px var(--f-disp); cursor: pointer; position: relative; }
+nav.tabs button[aria-selected="true"] { color: var(--acorn); box-shadow: inset 0 3px 0 var(--acorn); }
+nav.tabs .badge { position: absolute; top: 4px; margin-left: 2px; min-width: 16px; padding: 0 3px; background: var(--up); color: var(--cream); font: 12px/16px var(--f-body); }
+/* tree */
+.back { justify-self: start; align-self: flex-start; padding: 8px 14px; font: 15px var(--f-disp); color: var(--ink); background: var(--acorn); border: 0; box-shadow: 0 0 0 2px #000; cursor: pointer; }
+.treeTop { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.zoom { display: flex; gap: 6px; }
+.zoom button { width: 36px; height: 32px; background: var(--panel); border: 2px solid var(--line); cursor: pointer; font: 15px var(--f-disp); }
+.treeBox { position: relative; overflow: auto; height: calc(100vh - 340px); min-height: 300px; background: #15100d; border: 2px solid var(--line); touch-action: pan-x pan-y; }
+.treeIn { position: relative; transform-origin: 0 0; }
+.treeIn svg { position: absolute; inset: 0; overflow: visible; }
+.node { position: absolute; width: 58px; height: 58px; margin: -29px 0 0 -29px; background: var(--panel); border: 2px solid var(--line); cursor: pointer; padding: 0; display: grid; place-items: center; }
+.node img { width: 36px; height: 36px; image-rendering: pixelated; }
+.node .c { position: absolute; left: -10px; right: -10px; bottom: -18px; text-align: center; color: var(--dim); font-size: 12px; line-height: 14px; white-space: nowrap; pointer-events: none; }
+.node.own { border-color: var(--acorn); background: #3a2a18; }
+.node.own .c { color: var(--acorn); }
+.node.can { border-color: var(--leaf); box-shadow: 0 0 0 2px rgba(127,176,105,.35); }
+.node.can .c { color: var(--leaf); }
+.node.lock { opacity: .5; }
+.node.hid { opacity: .4; }
+.node.hid span.q { font: 30px var(--f-disp); color: var(--faint); }
+.node.venue { width: 66px; height: 66px; margin: -33px 0 0 -33px; border-color: var(--acorn); }
+.node.end { border-color: var(--up); }
+.node.sel { outline: 3px solid var(--cream); outline-offset: 2px; }
+.vlabel { position: absolute; font: 15px var(--f-disp); color: var(--acorn); white-space: nowrap; transform: translate(42px, -10px); pointer-events: none; }
+.sheet { background: var(--panel); border: 2px solid var(--line); padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center; min-height: 64px; }
+.sheet .nm { font: 15px var(--f-disp); min-width: 0; }
+.sheet .ds { color: var(--dim); grid-column: 1; min-width: 0; }
+/* settings */
+.set { display: grid; gap: 12px; }
+.set section { background: var(--panel); border: 2px solid var(--line); padding: 10px 12px; display: grid; gap: 8px; }
+.set h3 { font: 15px var(--f-disp); margin: 0; }
+.choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice button { display: grid; justify-items: center; gap: 4px; padding: 10px; background: var(--ink); border: 2px solid var(--line); cursor: pointer; }
+.choice button[aria-pressed="true"] { border-color: var(--acorn); color: var(--acorn); }
+.choice canvas { height: 44px; image-rendering: pixelated; }
+.choice b { font: 15px var(--f-disp); font-weight: normal; }
+.modal { position: fixed; inset: 0; z-index: 30; background: rgba(10,8,6,.88); display: grid; place-items: center; padding: 16px; }
+.modal > div { max-width: 420px; width: 100%; background: var(--panel); border: 2px solid var(--acorn); padding: 16px; display: grid; gap: 12px; text-align: center; }
+.modal h3 { font: 30px var(--f-disp); margin: 0; color: var(--acorn); }
+.mail { user-select: all; color: var(--cream); }
+.quick { display: flex; flex-direction: column; gap: 6px; min-height: 40px; }
+.qb { display: flex; align-items: center; gap: 10px; width: 100%; background: var(--panel); border: 2px solid var(--leaf); padding: 6px 10px 6px 6px; text-align: left; cursor: pointer; }
+.qb.new { animation: qpop .25s ease-out; }
+.qb.venue { border-color: var(--acorn); } .qb.end { border-color: var(--up); }
+.qb img { width: 48px; height: 48px; image-rendering: pixelated; background: #000; flex: none; object-fit: contain; }
+.qb span { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.4; }
+.qb b { font: 15px var(--f-disp); font-weight: normal; }
+.qb i { font-style: normal; color: var(--dim); }
+.qb em { font-style: normal; color: #f3c34f; }
+.qempty { color: var(--dim); padding: 8px 0; }
+@keyframes qpop { from { transform: translateY(6px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .qb.new { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header><h1>소 잃고 외양간 고친다</h1></header>
+  <div class="ticker" aria-hidden="true"><span id="ticker"></span></div>
+
+  <div id="tab-yard" class="tab">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <section class="board" aria-live="polite">
+        <div class="lbl" id="hlLabel">지금 외양간: 나무 외양간</div>
+        <div class="big" id="headline">잃은 소 0마리</div>
+        <div class="fine" id="fine">고친 곳 0곳 · 미리 막은 소 0마리</div>
+      </section>
+      <div class="stage"><canvas id="cv" width="320" height="180" aria-label="소가 빠져나간 구멍을 망치로 고치는 장면"></canvas><div class="ending" id="ending"></div></div>
+      <div class="stats">
+        <div class="cheer"><span id="cheer">0</span><small>교훈</small></div>
+        <div class="rate">한 번 고칠 때 <b id="perDay">0</b><br>잃을 것 <span id="mk">1</span> · 대신 고치는 손 <span id="au">0</span>번/초</div>
+      </div>
+      <button class="tapbtn" id="tap"><canvas id="tapIcon"></canvas><span><span>땅! 고치기</span><br><span class="next" id="next">또 뚫렸다</span></span></button>
+      <div id="resultBox"></div>
+      <h2>바로 세울 수 있는 대책 <button class="link" id="toTree">대책도 전체 보기</button></h2>
+      <div class="quick" id="quick"></div>
+    </div>
+  </div>
+
+  <div id="tab-tree" class="tab" hidden>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button type="button" class="back">← 현장으로 돌아가기</button>
+      <div class="treeTop"><h2 style="margin:0">대책도 <small id="treeCount"></small></h2><div class="zoom"><button id="zout" aria-label="축소">−</button><button id="zin" aria-label="확대">+</button></div></div>
+      <div class="hint">노드를 눌러 고르고 아래에서 실행합니다. <span id="treeCheer"></span></div>
+      <div class="treeBox" id="treeBox"><div class="treeIn" id="treeIn"><svg id="treeSvg"></svg></div></div>
+      <div class="sheet" id="sheet"><div class="nm">노드를 고르세요</div><div class="ds">살 수 있는 노드는 초록 테두리로 표시됩니다.</div></div>
+    </div>
+  </div>
+
+  <div id="tab-set" class="tab set" hidden>
+    <button type="button" class="back">← 현장으로 돌아가기</button>
+    <section><h3>소리</h3><div class="row"><button class="btn" id="mute">소리 끄기</button></div></section>
+    <section><h3>진행</h3><div class="row"><button class="btn" id="reset">처음부터 다시</button></div><div class="hint" id="playInfo"></div></section>
+    <section><h3>같은 만든이의 다른 게임</h3><div class="row"><a class="btn" href="https://baramutzero-netizen.github.io/moktak/" target="_blank" rel="noopener">소 귀에 경 읽기</a><a class="btn" href="https://baramutzero-netizen.github.io/josammosa/" target="_blank" rel="noopener">조삼모사</a><a class="btn" href="https://baramutzero-netizen.github.io/skyspit/" target="_blank" rel="noopener">앙천이타</a></div></section>
+    <section><h3>만든 것과 빌린 것</h3><div class="hint">도트 그림과 소리는 모두 직접 그리고 합성했습니다(소들은 소 귀에 경 읽기의 그 소들입니다). 글꼴: 갈무리(Galmuri) © Lee Minseo, SIL Open Font License 1.1. 진행 기록은 이 브라우저 안에만 저장되고 어디에도 보내지 않습니다. 게임 속 인물과 장소는 모두 지어낸 것입니다.</div><div>문의 <span class="mail">baramutzero@gmail.com</span></div></section>
+  </div>
+</div>
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="yard" aria-selected="true">현장</button>
+  <button role="tab" data-tab="tree" aria-selected="false">대책도<span class="badge" id="badge" hidden>0</span></button>
+  <button role="tab" data-tab="set" aria-selected="false">설정</button>
+</nav>
+
+<script>
+'use strict';
+const SP = /*__SPRITES__*/null;
+const T = s => s;
+const GAME_URL = 'https://baramutzero-netizen.github.io/barnfix/', SOGWI_URL = 'https://baramutzero-netizen.github.io/moktak/', JOSAM_URL = 'https://baramutzero-netizen.github.io/josammosa/', SKY_URL = 'https://baramutzero-netizen.github.io/skyspit/';
+
+// ───────── data ─────────
+// each place loses something different, and each time the fault sits a little closer to you
+const VENUES = ['시골 외양간', '동네 가게', '방송 스튜디오', '대기업', '청문회', '우리 집', '거울 앞'];
+const LOSE = [['소', '마리'], ['손님', '명'], ['시청자', '명'], ['고객', '명'], ['신뢰', '점'], ['가족과의 시간', '시간'], ['건강', '점']];
+const CAUSE = [['후다닥!', '판자가 썩었다', '문이 열렸다'], ['주문 실수!', '불친절!', '머리카락!', '"다신 안 와요"'], ['말실수!', '"구독 취소"', '클립 박제!', '"실망입니다"'],
+  ['사고!', '정보 유출!', '"해지합니다"', '결함!'], ['논란!', '"기억나지 않습니다"', '"실망입니다"', '말 바꾸기!'], ['약속 깜빡!', '"또 늦었어?"', '기념일!', '"괜찮아…"'], ['밤샘!', '야식!', '"내일부터"', '또 밤샘!']];
+const HOLD = ['hanwoo', 'p_green', 'p_blue', 'p_suit', 'p_green', 'p_kid', 'heart'];   // default look of what you still have, per place
+const GATE = [null,
+  ['가게 창업', '외양간 일은 접고 가게를 차렸다. 이번엔 잘될 것 같다.'],
+  ['방송 시작', '가게도 접고 방송을 켰다. 말만 잘하면 된다.'],
+  ['대기업 입사', '방송도 접고 큰 회사에 들어갔다. 큰 회사니까 안전하다.'],
+  ['청문회 출석', '내 이름이 불렸다. 잘 설명하면 된다.'],
+  ['집에 돌아옴', '물러나서 집에 왔다. 이제 좀 쉬면 된다.'],
+  ['거울 앞에 섬', '오랜만에 거울 앞에 섰다. 아직 괜찮아 보인다.'],
+];
+// 악단: five players per place; every one you hire keeps playing (like 소 귀에 경 읽기)
+const BANDS = [
+  [['hamrhythm', '망치 장단', '땅땅 따당. 고칠수록 흥이 난다.'], ['moo', '음메 합창', '남은 소들이 운다.'], ['bucket', '양동이 드럼', '여물통을 엎어서 두드린다.'], ['wonang', '워낭 소리', '딸랑딸랑. 소 목에 달린 방울.'], ['tractor', '경운기 베이스', '털털털털. 시동은 한 번에 안 걸린다.']],
+  [['doorbell', '문종 딸랑', '딸랑. 들어오는 소리보다 나가는 소리가 많다.'], ['posbeat', '포스기 비트', '삑. 삑. 환불.'], ['fryer', '튀김기 지글이', '치이익. 하이햇보다 낫다.'], ['bike', '배달 오토바이', '부릉. 리뷰보다 빨리 달린다.'], ['logosong', '가게 로고송', '사장님이 직접 불렀다. 한 번 들으면 안 잊힌다.']],
+  [['donate', '후원 알림음', '띠링! 금액은 점점 줄어든다.'], ['lofi', '방송 BGM', '저작권 걱정 없는 로파이.'], ['dudung', '효과음 버튼', '두둥! 말실수 직전에 눌렀다.'], ['chatpop', '채팅 알림 뽁', '뽁뽁뽁. 채팅이 빠를수록 빨라진다.'], ['subbass', '구독 버튼 베이스', '구독, 좋아요, 알림 설정 베이스.']],
+  [['holdmusic', '통화 대기 음악', '고객님의 전화는 매우 중요합니다.'], ['alarm', '경보음 신스', '삐뽀삐뽀. 이미 터진 뒤에 울린다.'], ['typing', '키보드 타건', '사과문을 쓰는 손이 제일 빠르다.'], ['copier', '복합기 리듬', '철컥철컥. 경위서를 백 부 뽑는다.'], ['boardroom', '회의실 브라스', '빰빠밤. 대책 회의 시작.']],
+  [['gavel', '의사봉', '땅땅땅. 망치는 망치다.'], ['flash', '카메라 플래시', '찰칵찰칵. 고개 숙인 장면만 찍는다.'], ['timer', '발언 시간 비트', '30초 남았습니다. 30초 더 갑니다.'], ['murmur', '방청석 웅성임', '웅성웅성. 답변할 때마다 커진다.'], ['howl', '마이크 하울링', '삐이이. 아무도 끄지 않는다.']],
+  [['tv', '거실 TV 소리', '아무도 안 보는 TV가 켜져 있다.'], ['lullaby', '자장가', '혼자 부르는 자장가.'], ['clock', '벽시계 째깍', '째깍째깍. 늦은 시간을 정확히 알려 준다.'], ['kettle', '주전자 휘파람', '삐이. 혼자 마시는 차.'], ['dishes', '설거지 달그락', '식은 저녁을 치우는 소리.']],
+  [['heartbeat', '심장 박동 비트', '쿵쿵. 가장 오래 연주해 온 악단.'], ['breath', '숨소리 패드', '들이쉬고, 내쉬고.'], ['alarmbeep', '알람 합주', '삐삐삐. 다섯 개가 돌아가며 운다.'], ['secondhand', '손목시계 초침', '똑딱. 남은 시간을 센다.'], ['sighpad', '한숨 현악', '하아. 길고 낮은 화음.']],
+].map(list => list.map(([id, n, d], i) => [id, n, d, { x: 1.25, layer: i + 1 }]));
+// chains: x 사후 대책(배수) · m 잃을 것 늘리기 · a 대신 수습하는 손(자동) · b 악단(음악 + 배수)
+const CH = [
+  { x: [['plank', '판자 덧대기', '문짝 틈으로 나갔다. 판자를 댔다.', { x: 1.5 }],
+        ['lock', '자물쇠', '문이 열려 있었다. 이제 잠근다. 소는 담을 넘었다.', { x: 2 }, '자물쇠 외양간'],
+        ['fence', '울타리', '담을 넘었다. 울타리를 쳤다. 소는 지붕으로 나갔다.', { x: 2 }]],
+    m: [['calf', '송아지 한 마리', '잃을 게 하나 더 생겼다.', { mk: 1, kind: 'hanwoo' }],
+        ['herd3', '얼룩젖소 셋', '소문 듣고 모였다. 외양간이 좁다.', { mk: 3, kind: 'holstein' }]],
+    a: [['son', '아들 망치질', '"아버지 또 뚫렸어요." 대신 두드린다.', { au: 1 }],
+        ['neighbor', '이웃 품앗이', '옆집 외양간도 뚫렸다. 서로 고쳐 준다.', { au: 2 }]],
+    b: BANDS[0] },
+  { x: [['notice', '사과 안내문', '"주문 실수 죄송합니다." 문에 붙였다. 손님은 이미 나갔다.', { x: 2 }, '사과문 붙은 가게'],
+        ['coupon', '다음에 쓰는 쿠폰', '다음에 오면 10% 할인. 다음은 없었다.', { x: 2 }],
+        ['kindness', '친절 교육', '불친절 후기를 읽고 나서 들었다.', { x: 1.8 }],
+        ['hairnet', '위생모', '머리카락 후기가 올라온 다음 날 샀다.', { x: 1.6 }]],
+    m: [['regulars', '단골손님들', '"사장님 바뀌었어요?" 그대로다.', { mk: 6, kind: 'p_green' }],
+        ['delivery', '배달 손님들', '별점 하나에 웃고 별점 하나에 운다.', { mk: 8, kind: 'p_red' }]],
+    a: [['parttime', '아르바이트생', '사장 대신 사과한다. 시급에 포함이다.', { au: 4 }]],
+    b: BANDS[1] },
+  { x: [['sorrylive', '사과 방송', '말실수 다음 날 무릎 꿇고 켰다.', { x: 2.2 }, '사과 방송 중인 채널'],
+        ['filter', '금칙어 필터', '이미 한 말은 필터에 안 걸린다.', { x: 2 }],
+        ['cutvod', '다시보기 편집', '잘라냈다. 클립은 이미 돌았다.', { x: 2 }],
+        ['handletter', '자필 사과문', '손글씨면 진심이 전해진다고 들었다.', { x: 1.8 }]],
+    m: [['subs', '구독자들', '알림 설정까지 했던 사람들.', { mk: 12, kind: 'p_blue' }],
+        ['donors', '후원자들', '후원 메시지가 "실망입니다"로 바뀌었다.', { mk: 15, kind: 'p_gold' }]],
+    a: [['mods', '채팅 매니저들', '채팅창을 대신 청소한다. 클립은 못 지운다.', { au: 8 }]],
+    b: BANDS[2] },
+  { x: [['pressrel', '보도자료', '"고객 여러분께 깊이 사과드립니다."', { x: 2.5 }, '보도자료 낸 회사'],
+        ['voucher', '보상 쿠폰', '유출된 개인정보 대신 커피 쿠폰.', { x: 2 }],
+        ['recall', '리콜', '결함이 터진 다음에 회수한다.', { x: 2 }],
+        ['tf', '재발 방지 TF', 'TF 이름만 열 번 바뀌었다.', { x: 2 }]],
+    m: [['clients', '거래처들', '계약서에 "신뢰"라고 적혀 있었다.', { mk: 20, kind: 'p_suit' }],
+        ['members', '유료 회원들', '자동 결제 해지 버튼을 찾고 있다.', { mk: 25, kind: 'p_grey' }]],
+    a: [['callcenter', '고객센터', '"고객님, 정말 죄송합니다"를 하루 천 번.', { au: 15 }]],
+    b: BANDS[3] },
+  { x: [['hearing', '청문회 답변', '"기억나지 않습니다." 신뢰도 기억에서 사라졌다.', { x: 3 }, '청문회에 선 사람'],
+        ['explain', '해명 자료', '두꺼울수록 덜 읽힌다.', { x: 2.5 }],
+        ['stepdown', '사퇴 표명', '물러나면 끝나는 줄 알았다.', { x: 3 }],
+        ['pledge', '재발 방지 약속', '지난번 약속의 재발 방지 약속.', { x: 2 }]],
+    m: [['citizens', '지켜보는 사람들', '뉴스를 끄지 않고 보고 있다.', { mk: 40, kind: 'p_green' }],
+        ['believers', '믿어 줬던 사람들', '"그래도 저 사람은" 하던 사람들.', { mk: 30, kind: 'p_blue' }]],
+    a: [['aides', '보좌진', '대신 해명한다. 해명이 해명을 부른다.', { au: 30 }]],
+    b: BANDS[4] },
+  { x: [['sorrynote', '미안하다는 쪽지', '냉장고에 붙였다. 아이는 이미 잠들었다.', { x: 3 }, '쪽지 붙은 냉장고'],
+        ['lategift', '늦은 선물', '생일 다음 날 샀다.', { x: 2.5 }],
+        ['circle', '달력에 동그라미', '기념일이 지나고 나서 그렸다.', { x: 3 }],
+        ['nextweek', '"다음 주엔 꼭"', '지난주에도 한 말.', { x: 3 }],
+        ['tripplan', '가족 여행 계획', '계획만 세 번 세웠다.', { x: 2 }]],
+    m: [['kids', '기다리는 아이들', '현관문 소리에 뛰어나온다. 오늘도 아니다.', { mk: 60, kind: 'p_kid' }],
+        ['parents', '고향 부모님', '"바쁘면 안 와도 돼." 진심이 아니다.', { mk: 100, kind: 'p_grey' }]],
+    a: [['spouse', '배우자', '대신 사과하고, 대신 데려가고, 대신 기다린다.', { au: 60 }]],
+    b: BANDS[5] },
+  { x: [['vitamins', '영양제 한 움큼', '밤샘 다음 날 털어 넣는다.', { x: 3 }, '포스트잇 붙은 거울'],
+        ['gympass', '헬스장 1년권', '등록한 날이 마지막으로 간 날.', { x: 3 }],
+        ['checkup', '건강검진 예약', '몸이 신호를 보낸 다음에 예약했다.', { x: 3 }],
+        ['fromtomorrow', '"내일부터"', '어제도 붙인 포스트잇.', { x: 3 }],
+        ['smartwatch', '스마트워치', '걸음 수를 세는 시계. 걸은 적은 없다.', { x: 3 }]],
+    m: [['onebody', '하나뿐인 몸', '바꿀 수 없는 유일한 것.', { mk: 150, kind: 'heart' }],
+        ['days', '남은 날들', '셀 수 있다는 걸 이제야 알았다.', { mk: 200, kind: 'heart' }]],
+    a: [['alarms', '알람 다섯 개', '일어나라고 다섯 번 운다.', { au: 120 }]],
+    b: BANDS[6] },
+];
+const NEWS = [
+  ['소 한 마리 이탈… 주인 "판자 대겠다"', '판자 덧댄 다음 날 담 넘어 또 이탈', '외양간 주변 발자국 <b>▲</b>'],
+  ['동네 가게 별점 <i>▼</i>… "주문이 또 틀렸어요"', '사과 안내문 부착 후 손님 감소 지속', '"다음에 쓰는 쿠폰" 사용률 0%'],
+  ['방송 중 말실수 클립 조회수 <b>▲</b>', '사과 방송 동시 시청자, 사과 전의 절반', '"자필 사과문" 글씨체 분석 영상 등장'],
+  ['서비스 장애 사과 보도자료… 같은 문장 재사용 논란', '보상 쿠폰 지급, 해지 문의 폭주', '재발 방지 TF 출범, 이름만 열한 번째'],
+  ['청문회 답변 "기억나지 않습니다" 14회', '해명 자료 400쪽… "읽은 사람 없어"', '신뢰도 조사 <i>▼</i> 최저치'],
+  ['아이 "아빠 오늘 와?"… 오늘도 늦음', '냉장고 쪽지 7장째', '가족 여행 계획 세 번째 무산'],
+  ['"내일부터" 포스트잇 31장째', '헬스장 1년권, 첫날 이후 출석 0', '걸음 수 오늘도 <i>412보</i>'],
+];
+const PTAP = 4;
+
+const NODES = [], NODE = {};
+function addNode(n) { NODES.push(n); NODE[n.id] = n; return n; }
+const COL = { a: -2, x: -1, m: 1, b: 2 };
+let row = 0;
+CH.forEach((ch, v) => {
+  const vn = addNode({ id: 'v' + v, v, type: 'venue', n: v ? GATE[v][0] : '시골 외양간', d: v ? GATE[v][1] : '나무로 지은 작은 외양간. 소가 한 마리 있다.', parent: v ? 'v' + (v - 1) : null, eff: { venue: v }, col: 0, row });
+  let maxLen = 0;
+  for (const key of ['x', 'm', 'a', 'b']) {
+    (ch[key] || []).forEach((it, i) => { const [id, n, d, eff, hl] = it; addNode({ id, v, type: key, n, d, eff, hl, parent: i ? ch[key][i - 1][0] : vn.id, col: COL[key], row: row + 1 + i }); });
+    maxLen = Math.max(maxLen, (ch[key] || []).length);
+  }
+  row += maxLen + 1.6;
+});
+addNode({ id: 'end', v: 6, type: 'end', n: '미리 고치기', d: '평생 잃고 나서 고쳤다. 이번만은 일이 생기기 전에 고쳐 본다.', parent: 'v6', eff: { end: 1 }, col: 0, row: row - 0.3 });
+const LAYER = {}; for (const n of NODES) if (n.eff.layer) LAYER[n.v * 10 + n.eff.layer] = n.id;
+
+function applyEff(s, n) { const e = n.eff; if (e.mk) s.mk += e.mk; if (e.x) s.x *= e.x; if (e.au) s.au += e.au; }
+(function price() {
+  const order = [];
+  CH.forEach((ch, v) => {
+    if (v) order.push(NODE['v' + v]);
+    const L = Math.max(...['x', 'm', 'a', 'b'].map(k => (ch[k] || []).length));
+    for (let i = 0; i < L; i++) for (const k of ['x', 'm', 'a', 'b']) if (ch[k] && ch[k][i]) order.push(NODE[ch[k][i][0]]);
+  });
+  order.push(NODE.end);
+  const s = { mk: 1, x: 1, au: 0 }, N = order.length;
+  NODE.v0.cost = 0;
+  order.forEach((n, i) => {
+    const rate = (PTAP + s.au) * s.mk * s.x;
+    const wait = n.type === 'end' ? 14 : (2.4 + 5.6 * Math.pow(1 - i / (N - 1), 2)) * 75 / (N - 1);
+    const c = rate * wait, p = Math.pow(10, Math.floor(Math.log10(c)) - 1);
+    n.cost = Math.max(4, c < 100 ? Math.round(c) : Math.round(c / p) * p);
+    applyEff(s, n);
+  });
+})();
+
+// ───────── state ─────────
+const SAVE_KEY = 'barnfix-v1';
+let S, D;
+function fresh() { return { cheer: 0, owned: { v0: 1 }, order: [], lost: 0, fixed: 0, lostV: [0, 0, 0, 0, 0, 0, 0], total: 0, taps: 0, playMs: 0, ended: 0 }; }
+function load(d) { S = fresh(); try { const raw = d && d.save ? d.save : JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (raw) Object.assign(S, raw); } catch (e) {} if (!S.lostV) S.lostV = [S.lost, 0, 0, 0, 0, 0, 0]; }
+function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+const owned = id => !!S.owned[id];
+function derived() {
+  const s = { mk: 1, x: 1, au: 0, kinds: [['hanwoo', 1]] };
+  for (const id of S.order) { const n = NODE[id]; if (!n) continue; applyEff(s, n); if (n.eff.mk) s.kinds.push([n.eff.kind || 'hanwoo', n.eff.mk]); }
+  s.venue = 0; for (let v = 6; v > 0; v--) if (owned('v' + v)) { s.venue = v; break; }
+  s.word = s.venue ? VENUES[s.venue] : '나무 외양간'; for (const id of S.order) if (NODE[id] && NODE[id].hl && NODE[id].v === s.venue) s.word = NODE[id].hl;
+  // what you still have here: only this place's kinds
+  const here = [[HOLD[s.venue], 1]]; for (const id of S.order) { const nd = NODE[id]; if (nd && nd.eff.mk && nd.v === s.venue) here.push([nd.eff.kind, nd.eff.mk]); }
+  const n = Math.min(s.mk, 18), herd = []; let cum = [], t = 0;
+  for (const [k, c] of here) { t += c; cum.push([t, k]); }
+  for (let i = 0; i < n; i++) { const pos = (i * 7919 % n + 0.5) / n * t; herd.push(cum.find(([c]) => pos <= c)[1]); }
+  s.herd = herd;
+  return s;
+}
+const gain = () => D.mk * D.x;
+const hidden = n => !owned('v' + n.v) && n.type !== 'venue';
+const available = n => !owned(n.id) && (!n.parent || owned(n.parent)) && !hidden(n);
+const endReady = () => NODES.every(o => o.type === 'end' || owned(o.id));
+
+const KU = ['', '만', '억', '조', '경', '해', '자', '양', '구', '간', '정', '재', '극', '항하사', '아승기', '나유타', '불가사의', '무량대수'];
+function fmt(n) {
+  if (n < 10 && n % 1) return (Math.floor(n * 10) / 10).toString();
+  if (n < 1e4) return Math.floor(n).toLocaleString('ko-KR');
+  const e = Math.min(KU.length - 1, Math.floor(Math.log10(n) / 4)), x = n / Math.pow(10, e * 4);
+  return (x < 10 ? x.toFixed(2) : x < 100 ? x.toFixed(1) : Math.floor(x).toLocaleString('ko-KR')) + KU[e];
+}
+
+// ───────── pixel art (helpers) ─────────
+const PAL = SP.pal, sprCache = {};
+function spr(name, swap) {
+  const key = name + (swap ? JSON.stringify(swap) : '');
+  if (sprCache[key]) return sprCache[key];
+  const P = name.startsWith('cow_') ? SP.cpal : PAL, rows = SP.spr[name], c = document.createElement('canvas'); c.width = rows[0].length; c.height = rows.length;
+  const x = c.getContext('2d');
+  rows.forEach((r, y) => [...r].forEach((ch, i) => { if (ch === '.') return; x.fillStyle = (swap && swap[ch]) || P[ch] || ch; x.fillRect(i, y, 1, 1); }));
+  return (sprCache[key] = c);
+}
+const urlCache = {};
+function sprURL(name, k = 4, swap) { const key = name + k + JSON.stringify(swap || 0); if (urlCache[key]) return urlCache[key]; const s = spr(name, swap), c = document.createElement('canvas'); c.width = s.width * k; c.height = s.height * k; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(s, 0, 0, c.width, c.height); return (urlCache[key] = c.toDataURL()); }
+const txtCache = new Map();
+function ptext(ctx, str, px, py, color, align = 'left') {
+  const key = str + '|' + color; let c = txtCache.get(key);
+  if (!c) {
+    c = document.createElement('canvas'); const m = c.getContext('2d'); m.font = '12px Galmuri11';
+    c.width = Math.ceil(m.measureText(str).width) + 2; c.height = 14;
+    m.font = '12px Galmuri11'; m.textBaseline = 'top'; m.fillStyle = '#fff'; m.fillText(str, 1, 1);
+    const id = m.getImageData(0, 0, c.width, c.height), [R, G, B] = hex(color);
+    for (let i = 0; i < id.data.length; i += 4) { const on = id.data[i + 3] > 110; id.data[i] = R; id.data[i + 1] = G; id.data[i + 2] = B; id.data[i + 3] = on ? 255 : 0; }
+    m.putImageData(id, 0, 0); if (txtCache.size > 500) txtCache.clear(); txtCache.set(key, c);
+  }
+  const x = align === 'center' ? px - (c.width >> 1) : align === 'right' ? px - c.width : px;
+  ctx.drawImage(c, Math.round(x), Math.round(py)); return c.width;
+}
+function stext(ctx, s, x, y, col, al) { ptext(ctx, s, x + 1, y + 1, '#000000', al); return ptext(ctx, s, x, y, col, al); }
+function hex(h) { return [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); }
+function lerpC(a, b, t) { const A = hex(a), B = hex(b); return 'rgb(' + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',') + ')'; }
+
+
+
+// ───────── backgrounds (one per place) ─────────
+const W = 320, H = 180, bgCache = {};
+function rnd(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+function vgrad(x, top, bot, y0, y1) { for (let y = y0; y < y1; y += 2) { x.fillStyle = lerpC(top, bot, (y - y0) / (y1 - y0)); x.fillRect(0, y, W, 2); } }
+function ptextTo(x, s, px, py, col, al = 'center') { const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H; ptext(tmp.getContext('2d'), s, px, py, col, al); x.drawImage(tmp, 0, 0); }
+function makeBg(v) {
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'); const R = rnd(13 + v * 41);
+  const floor = (g1, g2) => { x.fillStyle = g1; x.fillRect(0, 150, W, 30); x.fillStyle = g2; for (let i = 0; i < 70; i++) x.fillRect(Math.floor(R() * W), 152 + Math.floor(R() * 28), 2, 1); };
+  if (v === 0) {
+    vgrad(x, '#86c4e4', '#f4dcae', 0, 150);
+    for (let px = 0; px < W; px += 2) { const h = 30 + 10 * Math.sin(px * 0.03 + 1) + 5 * Math.sin(px * 0.11); x.fillStyle = '#7fa86a'; x.fillRect(px, 150 - h, 2, h); }
+    floor('#79a650', '#5f8f3e');
+  } else if (v === 1) { // 동네 가게 거리
+    vgrad(x, '#9cc8e0', '#efe0c0', 0, 150);
+    for (let i = 0; i < 3; i++) { const hx = 178 + i * 46; x.fillStyle = ['#d8c8a8', '#c8d0d8', '#e0c8c0'][i]; x.fillRect(hx, 60, 40, 90); x.fillStyle = '#7a9ab0'; x.fillRect(hx + 6, 70, 12, 12); x.fillRect(hx + 22, 70, 12, 12); }
+    x.fillStyle = '#9a9a92'; x.fillRect(0, 146, W, 4); floor('#b8b0a0', '#a8a090');
+  } else if (v === 2) { // 방송 스튜디오(방)
+    vgrad(x, '#2a2240', '#3a2a50', 0, 150);
+    for (let i = 0; i < 9; i++) { x.fillStyle = ['#e5484d', '#9a6ae0', '#4c8ae0'][i % 3]; x.fillRect(180 + i * 14, 14, 10, 2); }
+    x.fillStyle = '#1a1628'; for (let i = 0; i < 6; i++) for (let k = 0; k < 4; k++) x.fillRect(176 + i * 22, 30 + k * 22, 18, 18);
+    floor('#2a2238', '#342a46');
+  } else if (v === 3) {
+    vgrad(x, '#b8d0e4', '#e4ecf2', 0, 150);
+    for (let i = 0; i < 6; i++) { const bx = 168 + i * 26, bh = 70 + Math.floor(R() * 60); x.fillStyle = '#6d8aa8'; x.fillRect(bx, 150 - bh, 22, bh); x.fillStyle = '#a8c4dc'; for (let wy = 150 - bh + 4; wy < 146; wy += 6) x.fillRect(bx + 2, wy, 18, 3); }
+    floor('#8a9098', '#7a8088');
+  } else if (v === 4) {
+    vgrad(x, '#6a4a32', '#4a3020', 0, 150);
+    x.fillStyle = '#7a5a3a'; for (let i = 0; i < W; i += 14) x.fillRect(i, 0, 2, 150);
+    x.fillStyle = '#2a3a52'; x.fillRect(178, 16, 130, 18); ptextTo(x, '청문회', 243, 18, '#f1ece0');
+    floor('#8a6a4a', '#7a5a3a');
+  } else if (v === 5) { // 우리 집 거실 밤
+    vgrad(x, '#3a3450', '#4a4060', 0, 150);
+    x.fillStyle = '#5a4a6a'; for (let i = 0; i < W; i += 20) x.fillRect(i, 0, 1, 150);
+    x.fillStyle = '#1a1a2a'; x.fillRect(196, 30, 44, 40); x.fillStyle = '#f3e08a'; for (let k = 0; k < 8; k++) x.fillRect(200 + (k * 13) % 36, 34 + (k * 7) % 32, 2, 2);
+    x.fillStyle = '#6a4a3a'; x.fillRect(250, 104, 60, 6); x.fillRect(254, 110, 4, 40); x.fillRect(302, 110, 4, 40);
+    floor('#6a5040', '#5a4030');
+  } else { // 거울 앞(새벽 방)
+    vgrad(x, '#1e2a3a', '#2e3a4a', 0, 150);
+    x.fillStyle = '#26323e'; x.fillRect(190, 40, 110, 70); x.fillStyle = '#3a4a5a'; x.fillRect(194, 44, 102, 62);
+    x.fillStyle = '#f1ece0'; x.fillRect(260, 120, 40, 30); x.fillStyle = '#c9d0d8'; x.fillRect(262, 122, 36, 8);
+    floor('#3a3a44', '#2e2e38');
+  }
+  return c;
+}
+function bg(v) { return bgCache[v] || (bgCache[v] = makeBg(v)); }
+
+// ───────── scene ─────────
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const FX = 6, FY = 114;
+// the thing you keep patching, per place: barn, shop front, stream monitor, office, hearing desk, fridge, mirror
+const OBJ = [{ x: 40, y: 76, w: 112, h: 74 }, { x: 40, y: 70, w: 112, h: 80 }, { x: 44, y: 66, w: 104, h: 64 }, { x: 46, y: 50, w: 100, h: 100 }, { x: 40, y: 92, w: 116, h: 58 }, { x: 60, y: 54, w: 64, h: 96 }, { x: 56, y: 40, w: 76, h: 100 }];
+let hammerT = -9, mooT = -9, enterT = -9, phase = 0, phaseT = 0, quietT = -1;
+const holes = [], runners = [], floats = [], returners = [];
+const COWK = ['hanwoo', 'holstein', 'heuku', 'buffalo', 'yak', 'white'];
+const PK = { p_green: { s: '#7fb069' }, p_red: { s: '#e5484d' }, p_blue: { s: '#4c8ae0' }, p_gold: { s: '#f3c34f' }, p_suit: { s: '#2a2a30', p: '#2a2a30' }, p_grey: { s: '#9aa3ad', h: '#d8d2c6' }, p_kid: { s: '#f3c34f', p: '#4c8ae0' } };
+const COSTUME = [null, { y: '#3a2a24', s: '#7fb069' }, { y: '#3a2a24', s: '#9a6ae0' }, { y: '#3a2a24', s: '#2a2a30' }, { y: '#6a6a70', s: '#2a2a30' }, { y: '#3a2a24', s: '#e8a33a' }, { y: '#3a2a24', s: '#c9d7e8', p: '#c9d7e8' }];
+function dspr(c, x, y, k = 2) { ctx.drawImage(c, Math.round(x), Math.round(y), c.width * k, c.height * k); }
+function drawKind(k, x, y) { if (COWK.includes(k)) ctx.drawImage(spr('cow_' + k), Math.round(x), Math.round(y)); else if (k === 'heart') dspr(spr('heart'), x + 3, y + 6, 2); else dspr(spr('person', PK[k] || {}), x + 4, y - 1, 2); }
+function kindIcon(k) { return COWK.includes(k) ? ['cow_' + k] : k === 'heart' ? ['heart'] : ['person', PK[k] || {}]; }
+function patchPos(i, v) { const o = OBJ[v], r = rnd(1000 + i * 97 + v * 7); r(); return { x: o.x + 4 + Math.floor(r() * (o.w - 18)), y: o.y + 4 + Math.floor(r() * (o.h - 16)) }; }
+function herdPos(i) { const col = i % 6, r = Math.floor(i / 6); return { x: 176 + col * 23 + (r % 2) * 11, y: 130 - r * 17 }; }
+const NOTE = ['#f3e08a', '#f3b0c0', '#b0e0c0', '#b0d0f0'];
+function drawPatch(v, i, x, y) {
+  const s = i % 3;
+  if (v === 0) {
+    if (s < 2) { ctx.fillStyle = '#9a6a3a'; ctx.fillRect(x, y, 12, 6); ctx.fillStyle = '#6a4424'; ctx.fillRect(x, y + 5, 12, 1); ctx.fillStyle = '#c9d0d8'; ctx.fillRect(x + 1, y + 2, 1, 1); ctx.fillRect(x + 10, y + 2, 1, 1); }
+    else { ctx.fillStyle = '#8a929c'; ctx.fillRect(x, y, 11, 9); ctx.fillStyle = '#e8c86a'; ctx.fillRect(x + 4, y + 3, 4, 4); }
+  } else if (v === 1) { ctx.fillStyle = s ? '#f1ece0' : '#f3e08a'; ctx.fillRect(x, y, 10, 8); ctx.fillStyle = '#9aa3ad'; ctx.fillRect(x + 1, y + 2, 8, 1); ctx.fillRect(x + 1, y + 4, 6, 1); if (s === 2) { ctx.fillStyle = '#e5484d'; ctx.fillRect(x + 6, y + 5, 3, 2); } }
+  else if (v === 2) { ctx.fillStyle = s ? '#1b1418' : '#e5484d'; ctx.fillRect(x, y, 14, 5); ctx.fillStyle = '#f1ece0'; ctx.fillRect(x + 2, y + 2, 9, 1); }
+  else if (v === 3) { ctx.fillStyle = '#f1ece0'; ctx.fillRect(x, y, 9, 11); ctx.fillStyle = '#9aa3ad'; for (let k = 0; k < 4; k++) ctx.fillRect(x + 1, y + 2 + k * 2, 7, 1); if (s === 1) { ctx.fillStyle = '#3d6fb8'; ctx.fillRect(x, y, 9, 2); } }
+  else if (v === 4) { ctx.fillStyle = s ? '#f1ece0' : '#e4ddd0'; ctx.fillRect(x, y, 12, 3); ctx.fillRect(x + 1, y - 2, 12, 2); ctx.fillStyle = '#9aa3ad'; ctx.fillRect(x + 2, y + 1, 8, 1); }
+  else if (v === 5 || v === 6) { ctx.fillStyle = NOTE[i % 4]; ctx.fillRect(x, y, 9, 9); ctx.fillStyle = '#5a5a66'; ctx.fillRect(x + 1, y + 3, 6, 1); ctx.fillRect(x + 1, y + 5, 4, 1); if (v === 6 && s === 2) { ctx.fillStyle = '#e8c09a'; ctx.fillRect(x - 2, y + 9, 12, 3); ctx.fillStyle = '#c8a07a'; ctx.fillRect(x + 3, y + 9, 2, 3); } }
+}
+function drawObject(v, now, clean) {
+  const o = OBJ[v];
+  if (v === 0) {
+    const BX = o.x, BY = o.y, BW = o.w, BH = o.h;
+    ctx.fillStyle = '#7a2a24'; for (let r = 0; r < 30; r++) ctx.fillRect(BX + 56 - r * 2 - 4, BY - 30 + r, r * 4 + 8, 1);
+    ctx.fillStyle = '#f1ece0'; for (let r = 0; r < 30; r++) { ctx.fillRect(BX + 56 - r * 2 - 5, BY - 30 + r, 2, 1); ctx.fillRect(BX + 56 + r * 2 + 3, BY - 30 + r, 2, 1); }
+    ctx.fillStyle = '#b8382e'; ctx.fillRect(BX, BY, BW, BH); ctx.fillStyle = '#a0302a'; for (let i = 0; i < BW; i += 8) ctx.fillRect(BX + i, BY, 1, BH);
+    ctx.fillStyle = '#f1ece0'; ctx.fillRect(BX, BY, BW, 2); ctx.fillRect(BX, BY, 2, BH); ctx.fillRect(BX + BW - 2, BY, 2, BH);
+    const dx = BX + 40, dy = BY + 34, open = clean;
+    ctx.fillStyle = open ? '#2a1a12' : '#8a2a24'; ctx.fillRect(dx, dy, 32, 40);
+    if (!open) { ctx.fillStyle = '#f1ece0'; ctx.fillRect(dx, dy, 32, 2); ctx.fillRect(dx, dy, 2, 40); ctx.fillRect(dx + 30, dy, 2, 40); for (let k = 0; k < 38; k++) { ctx.fillRect(dx + 1 + k * 30 / 38, dy + 1 + k, 2, 1); ctx.fillRect(dx + 29 - k * 30 / 38, dy + 1 + k, 2, 1); } }
+  } else if (v === 1) {
+    ctx.fillStyle = '#e8dcc0'; ctx.fillRect(o.x, o.y, o.w, o.h); ctx.fillStyle = '#d9443a'; for (let s = 0; s < o.w; s += 8) { ctx.fillStyle = (s / 8) % 2 ? '#f1ece0' : '#d9443a'; ctx.fillRect(o.x + s, o.y - 10, 8, 10); }
+    ctx.fillStyle = '#2a3a52'; ctx.fillRect(o.x + 20, o.y - 24, 72, 13); ptext(ctx, '우리 가게', o.x + 56, o.y - 24, '#f1ece0', 'center');
+    ctx.fillStyle = '#9cc6e0'; ctx.fillRect(o.x + 6, o.y + 10, 46, 40); ctx.fillStyle = '#5a4030'; ctx.fillRect(o.x + 64, o.y + 26, 34, 54); ctx.fillStyle = '#f3c34f'; ctx.fillRect(o.x + 92, o.y + 52, 3, 3);
+  } else if (v === 2) {
+    ctx.fillStyle = '#1b1418'; ctx.fillRect(o.x - 4, o.y - 4, o.w + 8, o.h + 8); ctx.fillStyle = '#3a2a60'; ctx.fillRect(o.x, o.y, o.w, o.h);
+    ctx.fillStyle = '#e5484d'; ctx.fillRect(o.x + 4, o.y + 4, 22, 9); ptext(ctx, 'LIVE', o.x + 15, o.y + 2, '#fff8d8', 'center');
+    ptext(ctx, '시청자 ' + fmt(D.mk), o.x + o.w - 4, o.y + 2, '#f1ece0', 'right');
+    ctx.fillStyle = '#2a2a30'; ctx.fillRect(o.x + 40, o.y + o.h + 4, 24, 16); ctx.fillStyle = '#5a4030'; ctx.fillRect(o.x - 10, o.y + o.h + 18, o.w + 20, 6);
+  } else if (v === 3) {
+    ctx.fillStyle = '#4a5a6e'; ctx.fillRect(o.x, o.y, o.w, o.h); ctx.fillStyle = '#7a9ab8'; for (let wy = o.y + 6; wy < o.y + o.h - 10; wy += 9) for (let wx = o.x + 6; wx < o.x + o.w - 8; wx += 12) ctx.fillRect(wx, wy, 8, 5);
+    ctx.fillStyle = '#2a3a52'; ctx.fillRect(o.x + 30, o.y - 14, 40, 12); ptext(ctx, '본사', o.x + 50, o.y - 15, '#f1ece0', 'center');
+  } else if (v === 4) {
+    ctx.fillStyle = '#5a3a1e'; ctx.fillRect(o.x, o.y, o.w, o.h); ctx.fillStyle = '#7a4a22'; ctx.fillRect(o.x - 4, o.y - 4, o.w + 8, 6);
+    ctx.fillStyle = '#f1ece0'; ctx.fillRect(o.x + 38, o.y - 16, 40, 12); ptext(ctx, '증인', o.x + 58, o.y - 17, '#2a1a12', 'center');
+    ctx.fillStyle = '#2a2a30'; ctx.fillRect(o.x + 56, o.y - 30, 2, 14); ctx.fillRect(o.x + 53, o.y - 32, 8, 3);
+  } else if (v === 5) {
+    ctx.fillStyle = '#d8dce0'; ctx.fillRect(o.x, o.y, o.w, o.h); ctx.fillStyle = '#b8bcc0'; ctx.fillRect(o.x, o.y + 34, o.w, 2); ctx.fillStyle = '#9aa3ad'; ctx.fillRect(o.x + o.w - 8, o.y + 10, 3, 16); ctx.fillRect(o.x + o.w - 8, o.y + 44, 3, 22);
+    ptext(ctx, '23:47', 300, 8, '#e5484d', 'right');
+  } else {
+    ctx.fillStyle = '#7a5a3a'; ctx.fillRect(o.x - 4, o.y - 4, o.w + 8, o.h + 8); ctx.fillStyle = '#9ac0d8'; ctx.fillRect(o.x, o.y, o.w, o.h); ctx.fillStyle = '#c0dcec'; for (let k = 0; k < 20; k++) ctx.fillRect(o.x + 6 + k * 2, o.y + 40 - k * 2, 2, 2);
+    ctx.globalAlpha = 0.6; dspr(spr('farmer', COSTUME[6]), o.x + 28, o.y + 40); ctx.globalAlpha = 1;
+  }
+  if (clean) return;
+  const n = phase === 1 ? 120 : Math.min(S.lostV[v] || 0, 120);
+  for (let i = 0; i < n; i++) { const h = holes.find(q => q.i === i && q.v === v && now - q.t0 < 260); const p = patchPos(i, v); if (h) { ctx.fillStyle = v === 6 ? '#e5484d' : '#1b1418'; ctx.fillRect(p.x, p.y, 10, 8); } else drawPatch(v, i, p.x, p.y); }
+}
+function draw(now) {
+  const v = phase >= 3 ? 0 : D.venue;
+  ctx.imageSmoothingEnabled = false; ctx.globalAlpha = 1; ctx.drawImage(bg(v), 0, 0);
+  if (phase < 3) props(v, now);
+  ptext(ctx, VENUES[v], 6, 4, v >= 2 ? '#f1ece0' : '#2a1a12');
+  if (v === 0) { ctx.fillStyle = '#c9a26a'; ctx.fillRect(168, 126, 152, 2); ctx.fillRect(168, 140, 152, 2); for (let i = 168; i < W; i += 16) ctx.fillRect(i, 122, 2, 30); }
+  // what you still have
+  const herd = D.herd, n = herd.length, tm = now - mooT;
+  const leaveK = phase === 2 ? Math.min(1, (now - phaseT) / 2200) : phase >= 3 ? 1 : 0;
+  if (leaveK < 1) for (let i = n - 1; i >= 0; i--) { const p = herdPos(i), bob = (Math.floor(now / 450) + i) % 7 === 0 ? -1 : 0; drawKind(herd[i], p.x + leaveK * 200 * (1 + (i % 3) * 0.3), p.y + bob + (tm < 400 && i % 4 === 0 ? -2 : 0)); }
+  for (const r of returners) { const t = Math.min(1, (now - r.t0) / 1500); if (t < 0) continue; const p = herdPos(r.i); drawKind(r.k, p.x + (1 - t) * 180, p.y + (t < 1 && Math.floor(now / 120) % 2 ? -1 : 0)); if (r.k === 'white' && t >= 1) { ctx.fillStyle = '#f3c34f'; ctx.fillRect(p.x + 6, p.y - 4, 12, 1); } }
+  if (D.mk > n && leaveK === 0 && phase === 0) { ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(246, 62, 72, 13); ptext(ctx, '외 ' + fmt(D.mk - n), 315, 62, '#f1ece0', 'right'); }
+  drawObject(v, now, phase >= 3);
+  // what just left
+  for (let i = runners.length - 1; i >= 0; i--) { const r = runners[i], t = (now - r.t0) / 900; if (t >= 1) { runners.splice(i, 1); continue; } const x = r.x + t * (340 - r.x), y = r.y + Math.sin(t * 20) * 2 - t * 10; drawKind(r.k, x, y); if (r.say && t < 0.4) stext(ctx, r.say, r.x + 8, r.y - 14, '#fff8d8', 'center'); }
+  // helpers with hammers
+  const nh = Math.min(Math.ceil(D.au / 6), 6);
+  for (let i = 0; i < nh; i++) { const hx = 44 + i * 18, up = Math.floor(now / 140 + i * 2) % 3 === 0; ctx.drawImage(spr('farmer', COSTUME[v] || null), hx, 160); ctx.drawImage(spr('hammer'), hx + 8, up ? 164 : 168); }
+  const band = NODES.filter(o => o.type === 'b' && owned(o.id));
+  // the whole band: every place's players in their own clothes, two rows along the bottom
+  band.forEach((o, i) => { const bx = 150 + (i % 17) * 10, by = 164 - Math.floor(i / 17) * 9 + (Math.floor(now / 150 + i * 2) % 4 === 0 ? -1 : 0); ctx.drawImage(spr('farmer', COSTUME[o.v] || null), bx, by); ctx.drawImage(spr('drum'), bx + 1, by + 9, 6, 6); });
+  // you
+  dspr(spr('farmer', COSTUME[v] || null), FX, FY);
+  if (v === 2) { ctx.fillStyle = '#2a2a30'; ctx.fillRect(FX + 2, FY + 2, 16, 2); ctx.fillRect(FX + 2, FY + 2, 2, 8); }
+  const sw = now - hammerT < 140; dspr(spr('hammer'), FX + 18, FY + (sw ? 26 : 12));
+  if (sw) stext(ctx, '땅!', FX + 30, FY + 4, '#f3c34f', 'center');
+  if (now - enterT < 1800) { const a = 1 - (now - enterT) / 1800; ctx.globalAlpha = Math.min(1, a * 2); ctx.fillStyle = '#000'; ctx.fillRect(0, 74, W, 24); const w = LOSE[v][0], c = w.charCodeAt(w.length - 1), obj = (c - 0xAC00) % 28 ? '을' : '를'; stext(ctx, '이번엔 ' + w + obj + ' 잃는다', 160, 80, '#f3c34f', 'center'); ctx.globalAlpha = 1; }
+  for (let i = floats.length - 1; i >= 0; i--) { const f = floats[i], t = (now - f.t0) / 1000; if (t > 1.1) { floats.splice(i, 1); continue; } stext(ctx, f.s, f.x, f.y - t * 16, f.c, 'center'); }
+}
+function props(v, now) {
+  const blink = Math.floor(now / 500) % 2;
+  if (v === 1 && owned('coupon')) { ctx.fillStyle = '#f3c34f'; ctx.fillRect(150, 100, 26, 30); ptext(ctx, '10%', 163, 108, '#2a1a12', 'center'); }
+  if (v === 2) { const chat = ['ㅋㅋㅋ', '방금 뭐라고?', '클립 땄다', '구독 취소', '실망입니다', '사과해']; ctx.fillStyle = 'rgba(10,8,20,.7)'; ctx.fillRect(176, 26, 136, 44); for (let k = 0; k < 3; k++) ptext(ctx, chat[(Math.floor(now / 900) + k) % chat.length], 180, 27 + k * 14, '#c9d0f0'); }
+  if (v === 3 && owned('pressrel')) { ctx.fillStyle = '#0d1018'; ctx.fillRect(170, 20, 140, 13); ptext(ctx, '"깊이 사과드립니다" ×' + (12 + blink), 240, 20, '#f1ece0', 'center'); }
+  if (v === 4 && owned('flash') && Math.random() < 0.06) { ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillRect(0, 0, W, H); }
+  if (v === 5) { ctx.fillStyle = 'rgba(10,8,20,.6)'; ctx.fillRect(176, 82, 130, 13); ptext(ctx, blink ? '"아빠 오늘 와?"' : '"엄마 언제 와?"', 241, 82, '#f3e08a', 'center'); }
+  if (v === 6 && owned('smartwatch')) { ctx.fillStyle = '#0d1018'; ctx.fillRect(196, 48, 96, 13); ptext(ctx, '오늘 걸음 412보', 244, 48, '#7fb069', 'center'); }
+}
+
+// ───────── sound (all synthesized live) ─────────
+let AC = null, master, music, sfx, NOISE, muted = false, nextStep = 0, step = 0, bar = 0;
+try { muted = localStorage.getItem('barnfix-mute') === '1'; } catch (e) {}
+const STEP = 0.15;
+function initAudio() {
+  if (AC) { if (AC.state !== 'running') AC.resume(); return; }
+  const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+  AC = new C();
+  const comp = AC.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4; comp.connect(AC.destination);
+  master = AC.createGain(); master.gain.value = muted ? 0 : 0.8; master.connect(comp);
+  music = AC.createGain(); music.gain.value = 1.3; music.connect(master);
+  sfx = AC.createGain(); sfx.gain.value = 0.75; sfx.connect(master);
+  NOISE = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); const d = NOISE.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    nextStep = AC.currentTime + 0.1; setInterval(schedule, 25);
+}
+function env(g, t, a, d, p) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(p, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); }
+function osc(type, f, t, dur, dest, vol, a = 0.003) { const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); env(g, t, a, dur, vol); o.connect(g); g.connect(dest); o.start(t); o.stop(t + a + dur + 0.05); return o; }
+function noise(t, dur, dest, vol, ftype, ff, q = 1) { const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = NOISE; f.type = ftype; f.frequency.value = ff; f.Q.value = q; env(g, t, 0.002, dur, vol); s.connect(f); f.connect(g); g.connect(dest); s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.05); }
+function wood(t, f, vol, dest = music) { const o = osc('sine', f * 1.5, t, 0.07, dest, vol, 0.001); o.frequency.exponentialRampToValueAtTime(f, t + 0.012); osc('triangle', f * 2.4, t, 0.025, dest, vol * 0.3, 0.001); }
+function tok(t, bowl, vol) {
+  if (S.item === 'rice') { noise(t, 0.03, sfx, vol * 0.25, 'bandpass', 6000, 3); osc('sine', bowl ? 1900 : 2300, t + 0.005, 0.12, sfx, vol * 0.08); return; }
+  wood(t, 1250, vol * 0.5, sfx); const b = bowl ? 470 : 640; [[1, 0.35], [2.76, 0.18], [5.4, 0.08]].forEach(([r, d], i) => osc('sine', b * r, t + 0.01, d, sfx, vol * [0.22, 0.1, 0.05][i]));
+}
+function chirp(t, f, vol, angry, dest = sfx) {
+  for (let k = 0; k < (angry ? 1 : 2); k++) {
+    const tt = t + k * 0.1, o = AC.createOscillator(), bp = AC.createBiquadFilter(), g = AC.createGain();
+    o.type = 'sawtooth'; bp.type = 'bandpass'; bp.Q.value = 3; o.frequency.setValueAtTime(f, tt);
+    if (angry) { o.frequency.linearRampToValueAtTime(f * 1.25, tt + 0.03); o.frequency.exponentialRampToValueAtTime(f * 0.6, tt + 0.16); }
+    else { o.frequency.exponentialRampToValueAtTime(f * 1.7, tt + 0.04); o.frequency.exponentialRampToValueAtTime(f * 1.2, tt + 0.08); }
+    bp.frequency.setValueAtTime(f * 2.2, tt); env(g, tt, 0.006, angry ? 0.16 : 0.07, vol);
+    o.connect(bp); bp.connect(g); g.connect(dest); o.start(tt); o.stop(tt + 0.3);
+  }
+}
+const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+function kick(t, vol) { const o = osc('sine', 150, t, 0.25, music, vol, 0.002); o.frequency.exponentialRampToValueAtTime(42, t + 0.12); }
+function hat(t, vol) { noise(t, 0.035, music, vol, 'highpass', 7500); }
+function shaker(t, vol) { noise(t, 0.03, music, vol, 'bandpass', 5200, 2); }
+function clap(t, vol) { for (let k = 0; k < 3; k++) noise(t + k * 0.008, 0.05, music, vol * (k === 2 ? 1 : 0.6), 'bandpass', 1500, 1.2); }
+function kkwaeng(t, vol, long) { [520, 763, 1118, 1590].forEach((f, i) => osc('square', f, t, long ? 0.32 : 0.06, music, vol * [0.25, 0.18, 0.14, 0.1][i], 0.001)); }
+function janggu(t, vol) { const o = osc('sine', 120, t, 0.22, music, vol, 0.002); o.frequency.exponentialRampToValueAtTime(70, t + 0.1); noise(t, 0.05, music, vol * 0.4, 'bandpass', 1400, 1.5); }
+function bass(t, m, dur, vol, cut = 520) { const o = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain(); o.type = 'sawtooth'; o.frequency.value = mtof(m); f.type = 'lowpass'; f.frequency.value = cut; env(g, t, 0.005, dur, vol); o.connect(f); f.connect(g); g.connect(music); o.start(t); o.stop(t + dur + 0.1); }
+function brass(t, notes, dur, vol) {
+  const f = AC.createBiquadFilter(), g = AC.createGain(); f.type = 'lowpass'; f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(2600, t + 0.04); f.frequency.exponentialRampToValueAtTime(900, t + dur);
+  env(g, t, 0.01, dur, vol); f.connect(g); g.connect(music);
+  notes.forEach(m => [-7, 7].forEach(dt => { const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = mtof(m); o.detune.value = dt; o.connect(f); o.start(t); o.stop(t + dur + 0.1); }));
+}
+function rhodes(t, notes, dur, vol) { notes.forEach(m => { const c = AC.createOscillator(), mo = AC.createOscillator(), mg = AC.createGain(), g = AC.createGain(); c.frequency.value = mtof(m); mo.frequency.value = mtof(m) * 7; mg.gain.setValueAtTime(mtof(m) * 1.2, t); mg.gain.exponentialRampToValueAtTime(1, t + 0.25); mo.connect(mg); mg.connect(c.frequency); env(g, t, 0.004, dur, vol); c.connect(g); g.connect(music); c.start(t); mo.start(t); c.stop(t + dur + 0.1); mo.stop(t + dur + 0.1); }); }
+function strings(t, notes, dur, vol) { const f = AC.createBiquadFilter(), g = AC.createGain(); f.type = 'lowpass'; f.frequency.value = 1400; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); f.connect(g); g.connect(music); notes.forEach(m => [-9, 0, 9].forEach(dt => { const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = mtof(m); o.detune.value = dt; o.connect(f); o.start(t); o.stop(t + dur + 0.05); })); }
+function timpani(t, m, vol) { const o = osc('sine', mtof(m) * 1.3, t, 0.6, music, vol, 0.003); o.frequency.exponentialRampToValueAtTime(mtof(m), t + 0.05); noise(t, 0.08, music, vol * 0.3, 'lowpass', 400); }
+function printer(t, vol) { noise(t, 0.05, music, vol, 'bandpass', 900, 2); const o = osc('square', 70, t + 0.02, 0.06, music, vol * 0.4, 0.001); o.frequency.exponentialRampToValueAtTime(40, t + 0.08); }
+function phone(t, vol) { const o1 = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), lfo = AC.createOscillator(), lg = AC.createGain(), am = AC.createGain(); o1.frequency.value = 1350; o2.frequency.value = 1700; lfo.type = 'square'; lfo.frequency.value = 18; lg.gain.value = 0.5; am.gain.value = 0.5; lfo.connect(lg); lg.connect(am.gain); env(g, t, 0.01, 0.42, vol); o1.connect(am); o2.connect(am); am.connect(g); g.connect(music); [o1, o2, lfo].forEach(o => { o.start(t); o.stop(t + 0.5); }); }
+function laser(t, vol) { const o = osc('square', 2400, t, 0.18, music, vol, 0.002); o.frequency.exponentialRampToValueAtTime(180, t + 0.18); }
+function beep(t, f, vol, dur = 0.05, dest = sfx) { osc('square', f, t, dur, dest, vol, 0.001); }
+function ching(t, vol) { [2637, 3951, 5274].forEach((f, i) => osc('sine', f, t, 0.5 - i * 0.12, sfx, vol * [0.3, 0.2, 0.1][i])); }
+function gong(t, vol) { [82, 139, 207, 296].forEach((f, i) => osc('sine', f, t, 3.2 - i * 0.5, sfx, vol * [0.5, 0.3, 0.2, 0.12][i], 0.01)); }
+function dingdong(t, vol) { [[76, 0], [72, 0.28], [67, 0.56]].forEach(([m, d]) => osc('sine', mtof(m), t + d, 0.6, sfx, vol)); }
+
+
+function snare(t, vol) { noise(t, 0.12, music, vol, 'bandpass', 1800, 0.8); osc('triangle', 200, t, 0.06, music, vol * 0.4, 0.001); }
+function moo(t, vol, dest = sfx) { // 음메: low saw through two vowel resonances, pitch sagging
+  const o = AC.createOscillator(), f1 = AC.createBiquadFilter(), f2 = AC.createBiquadFilter(), g = AC.createGain(), base = 105 + Math.random() * 30;
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(base * 1.1, t); o.frequency.linearRampToValueAtTime(base * 1.25, t + 0.25); o.frequency.exponentialRampToValueAtTime(base * 0.85, t + 0.75);
+  f1.type = 'bandpass'; f1.frequency.setValueAtTime(400, t); f1.frequency.linearRampToValueAtTime(700, t + 0.3); f1.Q.value = 4; f2.type = 'bandpass'; f2.frequency.value = 1100; f2.Q.value = 6;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.08); g.gain.setValueAtTime(vol, t + 0.45); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+  o.connect(f1); o.connect(f2); f1.connect(g); f2.connect(g); g.connect(dest); o.start(t); o.stop(t + 0.85);
+}
+function bang(t, vol) { wood(t, 520, vol * 0.8, sfx); noise(t, 0.04, sfx, vol * 0.5, 'bandpass', 2400, 1.5); osc('square', 1650, t, 0.05, sfx, vol * 0.08, 0.001); }
+function scurry(t, vol) { for (let k = 0; k < 4; k++) noise(t + k * 0.07, 0.03, sfx, vol * (1 - k * 0.15), 'bandpass', 900 + k * 120, 2); }
+function chime(t, notes, vol) { notes.forEach((m, i) => osc('sine', mtof(m), t + i * 0.06, 0.4, sfx, vol)); }
+
+const STEP8 = 0.14;
+const CHORDS = [[48, [60, 64, 67]], [43, [59, 62, 67]], [45, [57, 60, 64]], [41, [57, 60, 65]]];
+function schedule() { if (!AC) return; while (nextStep < AC.currentTime + 0.12) { playStep(nextStep, step, bar); nextStep += STEP8; step++; if (step === 8) { step = 0; bar++; } } }
+function playStep(t, s, b) {
+  if (S.ended) return;
+  // every band member you ever hired keeps playing at full volume
+  for (let v = D.venue; v >= 0; v--) { const P = [0, 1, 2, 3, 4, 5].map(k => k > 0 && owned(LAYER[v * 10 + k])); if (v === D.venue || P.some(Boolean)) arrange(v, t, s, b, v === D.venue, P); }
+}
+function arrange(v, t, s, b, base, P) {
+  const [root, chord] = CHORDS[Math.floor(b / 2) % 4], one = s === 0, half = s === 4, back = s === 2 || s === 6, any = P.some(Boolean);
+  const swell = (ff, q, ftype, peak, len) => { const sb = AC.createBufferSource(), f = AC.createBiquadFilter(), gg = AC.createGain(); sb.buffer = NOISE; sb.loop = true; f.type = ftype; f.frequency.value = ff; f.Q.value = q; gg.gain.setValueAtTime(0.0001, t); gg.gain.exponentialRampToValueAtTime(peak, t + len / 2); gg.gain.exponentialRampToValueAtTime(0.0001, t + len); sb.connect(f); f.connect(gg); gg.connect(music); sb.start(t); sb.stop(t + len + 0.1); };
+  if (v === 0) { if (base && (one || half)) wood(t, one ? 600 : 480, 0.3); if (P[1] && (s === 3 || s === 6 || s === 7)) wood(t, 880, 0.22); if (P[2] && one && b % 2 === 0) moo(t, 0.09, music); if (P[3]) { if (one || half) wood(t, 260, 0.45); if (back) noise(t, 0.06, music, 0.12, 'bandpass', 900, 1); } if (P[4] && (s === 2 || s === 6)) { osc('square', 820, t, 0.12, music, 0.025, 0.001); osc('square', 545, t, 0.12, music, 0.025, 0.001); } if (P[5]) { noise(t, 0.05, music, 0.06, 'lowpass', 220); if (one || s === 5) bass(t, root - 12, 0.25, 0.22, 260); } }
+  if (v === 1) { if (base && one) wood(t, 700, 0.2); if (P[1] && one && b % 2 === 0) { osc('sine', 1568, t, 0.6, music, 0.06); osc('sine', 1319, t + 0.3, 0.8, music, 0.06); } if (P[2]) { if (s === 0 || s === 3 || s === 6) beep(t, 2000, 0.02, 0.03, music); if (one || half) kick(t, 0.45); } if (P[3]) noise(t, 0.03, music, 0.02 + Math.random() * 0.03, 'highpass', 6000); if (P[4] && one && b % 4 === 2) { const o = osc('sawtooth', 70, t, 0.9, music, 0.08, 0.05); o.frequency.linearRampToValueAtTime(110, t + 0.4); o.frequency.linearRampToValueAtTime(60, t + 0.9); } if (P[5] && s % 2 === 0 && b % 2 === 0) osc('square', mtof(chord[(s / 2) % 3] + 12), t, 0.12, music, 0.03, 0.002); }
+  if (v === 2) { if (base && s % 2 === 0) hat(t, 0.03); if (P[1] && one && b % 4 === 0) [72, 76, 79, 84].forEach((n, k) => osc('triangle', mtof(n), t + k * 0.07, 0.25, music, 0.05)); if (P[2]) { if (one) rhodes(t, chord, 1.0, 0.05); if (one || s === 5) kick(t, 0.4); if (half) snare(t, 0.12); } if (P[3] && one && b % 4 === 3) brass(t, [root, root + 7], 0.5, 0.1); if (P[4] && !one && Math.random() < 0.35) { const o = osc('square', 1400 + Math.random() * 400, t, 0.03, music, 0.03, 0.001); o.frequency.exponentialRampToValueAtTime(2600, t + 0.03); } if (P[5] && (one || s === 3 || half)) bass(t, root - 12, 0.2, 0.22, 400); }
+  if (v === 3) { if (base && back) snare(t, 0.15); if (P[1] && s % 2 === 0) osc('square', mtof(chord[(s / 2 + b) % 3] + 12), t, 0.2, music, 0.02); if (P[2] && one && b % 2 === 0) { osc('square', 988, t, 0.25, music, 0.03); osc('square', 784, t + 0.28, 0.25, music, 0.03); } if (P[3]) noise(t, 0.015, music, 0.04 + Math.random() * 0.04, 'highpass', 4000); if (P[4]) printer(t, one || half ? 0.2 : 0.08); if (P[5] && one && b % 2 === 1) brass(t, chord, 0.5, 0.08); if (any) { if (one || half) kick(t, 0.5); bass(t, root - 12 + (s >= 4 ? 7 : 0), STEP8 * 0.8, 0.2); } }
+  if (v === 4) { if (base && one) timpani(t, root - 12, 0.3); if (P[1] && one) for (let k = 0; k < 3; k++) wood(t + k * 0.09, 640, 0.3); if (P[2] && (s === 3 || s === 7) && Math.random() < 0.6) noise(t, 0.03, music, 0.15, 'highpass', 5000); if (P[3]) { if (half) kick(t, 0.5); if (back) snare(t, 0.2); } if (P[4] && one && b % 2 === 0) swell(500, 2, 'bandpass', 0.07, STEP8 * 14); if (P[5] && one && b % 4 === 0) { const o = osc('sine', 2200, t, 1.2, music, 0.02, 0.4); o.frequency.linearRampToValueAtTime(2350, t + 1.2); } }
+  if (v === 5) { if (base && one) wood(t, 420, 0.15); if (P[1] && Math.random() < 0.3) noise(t, 0.12, music, 0.05, 'bandpass', 600 + Math.random() * 900, 4); if (P[2] && (one || half)) osc('sine', mtof(chord[(b + (half ? 1 : 0)) % 3] + 12), t, 0.55, music, 0.07, 0.04); if (P[3] && s % 2 === 0) beep(t, s % 4 ? 1500 : 1800, 0.015, 0.02, music); if (P[4] && one && b % 4 === 1) { const o = osc('sine', 1700, t, 1.0, music, 0.03, 0.4); o.frequency.linearRampToValueAtTime(1900, t + 1.0); } if (P[5] && Math.random() < 0.25) wood(t, 1800 + Math.random() * 600, 0.08); }
+  if (v === 6) { if (base && one) osc('sine', mtof(root - 12), t, 0.9, music, 0.15, 0.03); if (P[1] && (s === 0 || s === 1)) kick(t, s ? 0.3 : 0.55); if (P[2] && one && b % 2 === 0) swell(900, 0.7, 'lowpass', 0.08, STEP8 * 15); if (P[3] && b % 2 === 0 && s < 3) beep(t, 2600, 0.025, 0.06, music); if (P[4] && s % 2 === 0) beep(t, 3200, 0.012, 0.01, music); if (P[5] && one && b % 4 === 0) strings(t, chord, STEP8 * 30, 0.05); }
+}
+
+// ───────── play ─────────
+// every fix needs a loss first: a cow gets out through a new hole, then the hammer patches exactly that hole
+let lastBang = 0, lastScurry = 0, gainAcc = 0, lastFloat = 0, autoAcc = 0;
+function lossAndFix(count, fromAuto) {
+  if (S.ended || count <= 0) return;
+  const now = performance.now(), g = gain() * count;
+  const v = D.venue, first = S.lostV[v] || 0;
+  S.lost += count; S.fixed += count; S.lostV[v] = first + count; S.cheer += g; S.total += g; gainAcc += g;
+  const shown = fromAuto ? Math.min(count, 2) : 1;
+  for (let k = 0; k < shown; k++) {
+    const i = (first + k) % 120, p = patchPos(i, v); holes.push({ i, v, t0: now }); while (holes.length > 30) holes.shift();
+    const say = !fromAuto && !runners.some(o => o.say && now - o.t0 < 300) ? CAUSE[v][Math.floor(Math.random() * CAUSE[v].length)] : '';
+    if (runners.length < (fromAuto ? 10 : 14)) runners.push({ t0: now, x: p.x, y: p.y - 10, k: D.herd[(first + k) * 7 % Math.max(1, D.herd.length)] || HOLD[v], say });
+  }
+  if (!fromAuto) hammerT = now + 180;
+  if (AC) { const t = AC.currentTime; if (now - lastScurry > (fromAuto ? 160 : 40)) { lastScurry = now; scurry(t, fromAuto ? 0.04 : 0.12); } if (now - lastBang > (fromAuto ? 110 : 30)) { lastBang = now; bang(t + 0.18, fromAuto ? 0.1 : 0.3); } if (D.venue === 0 && now - mooT > 1600 && Math.random() < 0.25) { mooT = now; moo(t + 0.1, 0.12); } }
+  if (now - lastFloat > 400) { lastFloat = now; floats.length = 0; floats.push({ s: '+' + fmt(gainAcc) + ' 교훈', x: 96, y: 58, c: '#fff8d8', t0: now }); gainAcc = 0; }
+}
+function fixTap() { if (S.ended) return; S.taps++; lossAndFix(1, false); }
+function buy(n) {
+  if (!available(n) || S.cheer < n.cost || S.ended) return false;
+  if (n.type === 'end' && !endReady()) return false;
+  S.cheer -= n.cost; S.owned[n.id] = 1; S.order.push(n.id); D = derived();
+  if (AC) { const t = AC.currentTime; if (n.type === 'venue') { gong(t, 0.35); brass(t + 0.05, [60, 64, 67, 72], 0.5, 0.1); } else if (!window.__noBlip) { wood(t, 300, 0.3, sfx); noise(t, 0.08, sfx, 0.2, 'lowpass', 500); } }
+  if (n.type === 'venue') enterT = performance.now();
+  if (n.type === 'end') startEnding();
+  save(); renderAll(); return true;
+}
+
+// ───────── UI ─────────
+const $ = id => document.getElementById(id);
+function chipOf(n) { const e = n.eff; return e.layer ? ['악단 · 교훈 ×' + e.x, 1] : e.mk ? ['잃을 것 +' + e.mk, 0] : e.x ? ['교훈 ×' + e.x, 1] : e.au ? ['대신 고치기 +' + e.au + '번/초', 0] : e.venue ? ['새 장소', 0] : ['엔딩', 1]; }
+function renderHeadline() {
+  const v = D.venue;
+  $('hlLabel').textContent = '지금: ' + D.word;
+  $('headline').textContent = '잃은 ' + LOSE[v][0] + ' ' + fmt(S.lostV[v] || 0) + LOSE[v][1];
+  $('fine').textContent = '수습한 일 ' + fmt(S.fixed) + '번 · 미리 막은 일 0번';
+}
+function renderTicker() { const v = D.venue; $('ticker').innerHTML = NEWS[v].map(s => '[' + VENUES[v] + '] ' + s).join('　　·　　') + '　　·　　미리 막은 일 <b>0번</b>'; }
+let quickKey = '';
+// like 소 귀에 경 읽기: only the strategies you can buy right now pop up as icons; otherwise the next goal
+const ready = n => available(n) && S.cheer >= n.cost && (n.type !== 'end' || endReady()) && !S.ended;
+function renderQuick() {
+  const list = NODES.filter(ready).sort((a, b) => a.cost - b.cost).slice(0, 6), next = NODES.filter(n => available(n) && !ready(n)).sort((a, b) => a.cost - b.cost)[0];
+  const key = list.map(n => n.id).join() + '|' + (list.length ? '' : next ? next.id : 'done');
+  const all = NODES.filter(ready).length; $('badge').hidden = !all; $('badge').textContent = all;
+  if (key === quickKey) return; quickKey = key;
+  const box = $('quick');
+  if (!list.length) { box.innerHTML = ''; const p = document.createElement('div'); p.className = 'qempty'; p.textContent = next ? `다음 대책: ${next.n} · ${fmt(next.cost)} 교훈` : S.ended ? '모든 대책을 마쳤습니다' : '대책도에서 다음 장소를 확인하세요'; box.append(p); return; }
+  // keep the buttons already on screen; only the new ones pop in
+  const have = {}; for (const el of [...box.children]) { if (el.dataset.id && list.some(n => n.id === el.dataset.id)) have[el.dataset.id] = el; else el.remove(); }
+  list.forEach((n, k) => {
+    let b = have[n.id];
+    if (!b) {
+      const [nm, sw] = iconOf(n); b = document.createElement('button'); b.type = 'button'; b.dataset.id = n.id; b.className = 'qb new' + (n.type === 'venue' ? ' venue' : n.type === 'end' ? ' end' : '');
+      b.innerHTML = `<img alt="" src="${sprURL(nm, 4, sw)}"><span><b></b><i></i><em>${fmt(n.cost)} 교훈</em></span>`; b.querySelector('b').textContent = n.n; b.querySelector('i').textContent = n.d;
+      b.addEventListener('click', () => { initAudio(); buy(n); }); b.addEventListener('animationend', () => b.classList.remove('new'), { once: true });
+    }
+    if (box.children[k] !== b) box.insertBefore(b, box.children[k] || null);
+  });
+}
+function renderStats() { $('cheer').textContent = fmt(S.cheer); $('perDay').textContent = fmt(gain()); $('mk').textContent = fmt(D.mk); $('au').textContent = D.au; renderHeadline(); }
+const CW = 70, RH = 74; let zoom = 1, sel = null, treeBuilt = false;
+const iconOf = n => n.type === 'venue' ? ['flag'] : n.type === 'end' ? ['barn'] : n.type === 'm' ? kindIcon(n.eff.kind || 'hanwoo') : n.type === 'a' ? ['hammer'] : n.type === 'b' ? ['drum'] : ['plank'];
+function buildTree() {
+  const tin = $('treeIn'), svg = $('treeSvg'); tin.querySelectorAll('.node,.vlabel').forEach(e => e.remove());
+  const maxRow = Math.max(...NODES.map(n => n.row)), w = CW * 5 + 40, h = (maxRow + 1) * RH + 40;
+  tin.dataset.w = w; tin.dataset.h = h; tin.style.width = w + 'px'; tin.style.height = h + 'px'; svg.setAttribute('width', w); svg.setAttribute('height', h);
+  const P = n => [w / 2 + n.col * CW, 40 + n.row * RH];
+  let lines = '';
+  for (const n of NODES) { if (!n.parent) continue; const [x1, y1] = P(NODE[n.parent]), [x2, y2] = P(n); lines += `<path data-id="${n.id}" d="M${x1} ${y1} ${n.col === NODE[n.parent].col ? '' : `L${x2} ${y1} `}L${x2} ${y2}" fill="none" stroke-width="4"/>`; }
+  svg.innerHTML = lines;
+  for (const n of NODES) {
+    const [x, y] = P(n), b = document.createElement('button'); b.type = 'button'; b.className = 'node ' + (n.type === 'venue' ? 'venue' : n.type === 'end' ? 'end' : ''); b.dataset.id = n.id;
+    b.style.left = x + 'px'; b.style.top = y + 'px'; b.innerHTML = '<img alt=""><span class="c"></span>';
+    b.addEventListener('click', () => { initAudio(); sel = n.id; renderTree(); renderSheet(); });
+    tin.appendChild(b);
+    if (n.type === 'venue') { const l = document.createElement('div'); l.className = 'vlabel'; l.style.left = x + 'px'; l.style.top = y + 'px'; l.textContent = VENUES[n.v]; l.dataset.id = n.id; tin.appendChild(l); }
+  }
+  treeBuilt = true; applyZoom();
+}
+function renderTree() {
+  if (!treeBuilt) buildTree();
+  for (const b of $('treeIn').querySelectorAll('.node')) {
+    const n = NODE[b.dataset.id], hid = hidden(n), own = owned(n.id), can = available(n) && S.cheer >= n.cost && (n.type !== 'end' || endReady());
+    b.classList.toggle('own', own); b.classList.toggle('can', !own && can); b.classList.toggle('lock', !own && !can && !hid); b.classList.toggle('hid', hid); b.classList.toggle('sel', sel === n.id);
+    const ic = hid ? 'q' : iconOf(n).join('|') ; if (b.dataset.ic !== ic) { b.dataset.ic = ic; if (hid) b.innerHTML = '<span class="q">?</span><span class="c"></span>'; else { const [nm, sw] = iconOf(n); b.innerHTML = `<img alt="" src="${sprURL(nm, 4, sw)}"><span class="c"></span>`; } }
+    b.querySelector('.c').textContent = own ? '완료' : hid ? '' : fmt(n.cost);
+    b.setAttribute('aria-label', hid ? '숨겨진 대책' : T(n.n));
+  }
+  for (const p of $('treeSvg').querySelectorAll('path')) { const n = NODE[p.dataset.id]; p.setAttribute('stroke', owned(n.id) ? '#d4923f' : owned(n.parent) && !hidden(n) ? '#5a4a3c' : '#2e241e'); }
+  $('treeCount').textContent = S.order.length + '/' + (NODES.length - 1);
+  $('treeCheer').textContent = '지금 ' + fmt(S.cheer) + ' 교훈';
+}
+function renderSheet() {
+  const sh = $('sheet'); if (!sel) return; const n = NODE[sel];
+  if (hidden(n)) { sh.innerHTML = `<div class="nm">???</div><div class="ds">${VENUES[n.v]}에 가면 열립니다.</div>`; return; }
+  const [chip, up] = chipOf(n), own = owned(n.id), blocked = n.type === 'end' && !endReady(), needParent = n.parent && !owned(n.parent);
+  sh.innerHTML = `<div class="nm">${T(n.n)}<span class="chip${up ? ' up' : ''}">${chip}</span></div><div class="ds">${T(n.d)}${needParent ? '<br>먼저 위 노드가 필요합니다.' : ''}${blocked ? '<br>다른 대책을 모두 갖춰야 합니다.' : ''}</div><button type="button" class="buy">${own ? '완료' : fmt(n.cost) + ' 교훈'}</button>`;
+  const b = sh.querySelector('button'); b.disabled = own || !available(n) || S.cheer < n.cost || blocked || S.ended;
+  b.addEventListener('click', () => { initAudio(); if (buy(n)) { renderTree(); renderSheet(); } });
+}
+function applyZoom() { const tin = $('treeIn'); tin.style.transform = `scale(${zoom})`; tin.parentElement.style.setProperty('--z', zoom); tin.style.marginRight = (tin.dataset.w * (zoom - 1)) + 'px'; tin.style.marginBottom = (tin.dataset.h * (zoom - 1)) + 'px'; }
+
+function renderAll() { renderTicker(); renderStats(); renderQuick(); if (curTab === 'tree') { renderTree(); renderSheet(); } }
+let curTab = 'yard';
+function showTab(t) {
+  curTab = t; for (const b of document.querySelectorAll('nav.tabs button')) b.setAttribute('aria-selected', b.dataset.tab === t);
+  for (const k of ['yard', 'tree', 'set']) $('tab-' + k).hidden = k !== t;
+  if (t === 'tree') { renderTree(); renderSheet(); if (!sel) { const vn = NODE['v' + D.venue], box = $('treeBox'); box.scrollTop = Math.max(0, (40 + vn.row * RH) * zoom - 40); box.scrollLeft = (box.scrollWidth - box.clientWidth) / 2; } }
+  if (t === 'set') { const m = Math.floor(S.playMs / 60000); $('playInfo').textContent = `잃은 것 ${fmt(S.lost)}번 · 수습한 일 ${fmt(S.fixed)}번 · 직접 두드린 횟수 ${S.taps.toLocaleString('ko-KR')}번 · 플레이 ${m}분`; }
+  window.scrollTo(0, 0);
+}
+
+// ───────── ending: first the empty fortress, then fixing before the loss ─────────
+const sleep = ms => new Promise(r => setTimeout(r, ms * (window.__endK || 1)));
+async function startEnding() {
+  S.ended = 1; flushTime(); save(); showTab('yard');
+  const box = $('ending'); box.innerHTML = '';
+  const line = (s, big) => { const d = document.createElement('div'); d.className = 'ln' + (big ? ' big' : ''); d.textContent = s; box.appendChild(d); while (box.children.length > 3) box.removeChild(box.firstChild); };
+  await sleep(600);
+  phase = 1; phaseT = performance.now();
+  line('마지막 틈까지 막았다.'); if (AC) for (let k = 0; k < 6; k++) bang(AC.currentTime + k * 0.12, 0.25); await sleep(1600);
+  line('대책은 완벽해졌다.'); await sleep(1600);
+  phase = 2; phaseT = performance.now(); if (AC) { for (let k = 0; k < 4; k++) scurry(AC.currentTime + k * 0.3, 0.1); }
+  box.innerHTML = ''; line('그사이 소도, 손님도, 시청자도, 고객도,'); line('신뢰도, 가족과의 시간도, 건강도 떠났다.'); await sleep(2800);
+  line('…지킬 게 없었다.', true); quietT = performance.now(); await sleep(2800);
+  box.innerHTML = ''; line('그래서 처음으로,'); await sleep(1100);
+  line('일이 생기기 전에 고쳐 보기로 했다.'); if (AC) for (let k = 0; k < 4; k++) bang(AC.currentTime + k * 0.25, 0.3);
+  hammerT = performance.now() + 1000; await sleep(1500);
+  phase = 3; phaseT = performance.now(); if (AC) chime(AC.currentTime, [67, 72, 76], 0.07); await sleep(1300);
+  box.innerHTML = ''; line('떠났던 것들이 하나둘 돌아왔다.');
+  phase = 4; const ks = ['hanwoo', 'p_green', 'holstein', 'p_blue', 'p_kid', 'heuku', 'p_grey', 'white'];
+  ks.forEach((k, i) => { returners.push({ t0: performance.now() + i * 380, i, k }); if (AC && COWK.includes(k)) moo(AC.currentTime + 0.5 + i * 0.38, 0.06); });
+  await sleep(3600);
+  line('(흰 소는 어느 절간에서 경을 듣고 왔다고 한다.)'); await sleep(2200);
+  box.innerHTML = ''; line('소 잃기 전에,', true); await sleep(1000); line('외양간 고치자.', true);
+  if (AC) chime(AC.currentTime, [72, 76, 79, 84], 0.08);
+  await sleep(2800);
+  showResult();
+}
+function makeCard() {
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1350; const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+  x.fillStyle = '#1b1512'; x.fillRect(0, 0, 1080, 1350);
+  const T2 = (s, px, py, size, col, fam = 'Galmuri14') => { x.font = `${size}px ${fam}, monospace`; x.textAlign = 'center'; x.textBaseline = 'top'; x.fillStyle = '#000'; x.fillText(s, px + 4, py + 4); x.fillStyle = col; x.fillText(s, px, py); };
+  T2('소 잃고 외양간 고친다', 540, 80, 88, '#e8a33a'); T2('잃고 나서야 고치는 게임', 540, 210, 44, '#a8968a', 'Galmuri11');
+  x.fillStyle = '#000'; x.fillRect(52, 312, 976, 556); x.drawImage(cv, 0, 0, 320, 180, 60, 320, 960, 540);
+  T2(`잃은 것 ${fmt(S.lost)}번 · 수습한 일 ${fmt(S.fixed)}번`, 540, 910, 48, '#f2e6cf', 'Galmuri11');
+  T2('교훈 ' + fmt(S.total), 540, 1000, 72, '#f3c34f');
+  const m = Math.floor(S.playMs / 60000), s = Math.floor(S.playMs / 1000) % 60;
+  T2(`${m}분 ${s}초 · 마지막 모습: ${D.word}`, 540, 1110, 40, '#7fb069', 'Galmuri11');
+  T2('미리 막은 일: 처음이자 마지막 한 번', 540, 1200, 44, '#e8a33a', 'Galmuri11');
+  return c;
+}
+function showResult() {
+  const ms = S.playMs, m = Math.floor(ms / 60000), s = Math.floor(ms / 1000) % 60;
+  const url = makeCard().toDataURL('image/png');
+  const brag = `소 잃고 외양간 고친다 ${m}분 ${s}초 만에 끝냈다. 소, 손님, 시청자, 고객, 신뢰, 가족과의 시간, 건강까지 ${fmt(S.lost)}번 잃고 나서야 고쳤다. 미리 막은 건 딱 한 번.\n` + GAME_URL;
+  $('resultBox').innerHTML = `<section class="result"><h3>사후 보고서</h3><dl>
+    <dt>플레이 시간</dt><dd>${m}분 ${s}초</dd>${LOSE.map(([w, u], v) => `<dt>잃은 ${w}</dt><dd>${fmt(S.lostV[v] || 0)}${u}</dd>`).join('')}
+    <dt>미리 막은 일</dt><dd>마지막에 한 번</dd><dt>직접 두드린 횟수</dt><dd>${S.taps.toLocaleString('ko-KR')}번</dd><dt>얻은 교훈</dt><dd>${fmt(S.total)}</dd></dl>
+    <img alt="사후 보고서 그림" src="${url}"><div class="hint">그림을 길게 누르면 휴대폰에 저장할 수 있습니다.</div>
+    <div class="row"><a class="btn" download="barnfix.png" href="${url}">그림 저장</a><button class="btn" type="button" id="shareBtn">공유하기</button><button class="btn" type="button" id="copyBtn">자랑 문구 복사</button></div>
+    <button type="button" class="btn main" id="again">다시 소 들이기</button>
+    <div class="xp"><small>다른 게임도 해보기</small>
+      <b>소 귀에 경 읽기 (牛耳讀經)</b><span>돌아온 흰 소가 경을 듣던 곳. 목탁을 치면 경이 소의 한쪽 귀로 들어가 반대쪽으로 나옵니다.</span><a class="btn" href="${SOGWI_URL}" target="_blank" rel="noopener">소 귀에 경 읽기 하러 가기</a>
+      <b>조삼모사 (朝三暮四)</b><span>원숭이들에게 아침에 셋, 저녁에 넷. 도토리는 언제나 7개인데 포장만 바뀌는 게임입니다.</span><a class="btn" href="${JOSAM_URL}" target="_blank" rel="noopener">조삼모사 하러 가기</a>
+      <b>앙천이타 (仰天而唾)</b><span>누워서 위로 뱉은 말은 결국 전부 내 얼굴로 돌아오는 게임입니다.</span><a class="btn" href="${SKY_URL}" target="_blank" rel="noopener">앙천이타 하러 가기</a></div></section>`;
+  $('copyBtn').addEventListener('click', () => { try { navigator.clipboard.writeText(brag).then(() => { $('copyBtn').textContent = '복사했습니다'; }, () => { $('copyBtn').textContent = brag; }); } catch (e) { $('copyBtn').textContent = brag; } });
+  $('shareBtn').addEventListener('click', async () => { try { const blob = await (await fetch(url)).blob(), f = new File([blob], 'barnfix.png', { type: 'image/png' }); if (navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f], text: brag }); else if (navigator.share) await navigator.share({ text: brag }); else $('shareBtn').textContent = '이 브라우저는 공유를 지원하지 않습니다'; } catch (e) {} });
+  $('again').addEventListener('click', () => { S = fresh(); D = derived(); resetScene(); save(); $('resultBox').innerHTML = ''; renderAll(); });
+}
+function resetScene() { $('ending').innerHTML = ''; phase = 0; quietT = -1; holes.length = 0; runners.length = 0; returners.length = 0; quickKey = ''; sessionStart = Date.now(); }
+
+// ───────── loop & input ─────────
+let sessionStart = Date.now(), lastT = performance.now(), uiT = 0, saveT = 0;
+function flushTime() { if (!S.ended) S.playMs += Date.now() - sessionStart; sessionStart = Date.now(); }
+function frame(now) {
+  const dt = Math.min(0.25, (now - lastT) / 1000); lastT = now;
+  if (!S.ended && D.au) { autoAcc += D.au * dt; const k = Math.floor(autoAcc); if (k) { autoAcc -= k; lossAndFix(k, true); } }
+  draw(now);
+  if (now - uiT > 150) { uiT = now; renderStats(); renderQuick(); if (curTab === 'tree') { renderTree(); const b = $('sheet').querySelector('button'); if (b && sel) { const n = NODE[sel]; b.disabled = owned(n.id) || !available(n) || S.cheer < n.cost || (n.type === 'end' && !endReady()) || S.ended; } } }
+  if (now - saveT > 4000) { saveT = now; flushTime(); save(); }
+  requestAnimationFrame(frame);
+}
+function tapInput(e) { if (e) e.preventDefault(); initAudio(); fixTap(); }
+function fit() { const st = document.querySelector('.stage'), w = st.clientWidth, dpr = window.devicePixelRatio || 1, k = Math.max(1, Math.floor(w * dpr / W)), px = W * k / dpr; cv.style.width = px < w * 0.9 ? '100%' : px + 'px'; }
+function boot(data) {
+  load(data); D = derived();
+  const ic = $('tapIcon'), s = spr('hammer'); ic.width = s.width; ic.height = s.height; ic.style.height = '24px'; ic.style.width = '64px'; ic.getContext('2d').drawImage(s, 0, 0);
+  $('tap').addEventListener('pointerdown', tapInput);
+  $('tap').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') tapInput(e); });
+  cv.addEventListener('pointerdown', tapInput);
+  window.addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body && curTab === 'yard') tapInput(e); });
+  for (const b of document.querySelectorAll('nav.tabs button')) b.addEventListener('click', () => showTab(b.dataset.tab));
+  $('toTree').addEventListener('click', () => showTab('tree'));
+  for (const b of document.querySelectorAll('.back')) b.addEventListener('click', () => showTab('yard'));
+  $('zin').addEventListener('click', () => { zoom = Math.min(1.6, zoom + 0.2); applyZoom(); });
+  $('zout').addEventListener('click', () => { zoom = Math.max(0.5, zoom - 0.2); applyZoom(); });
+  $('mute').textContent = muted ? '소리 켜기' : '소리 끄기';
+  $('mute').addEventListener('click', () => { muted = !muted; try { localStorage.setItem('barnfix-mute', muted ? '1' : '0'); } catch (e) {} if (master) master.gain.value = muted ? 0 : 0.8; $('mute').textContent = muted ? '소리 켜기' : '소리 끄기'; });
+  let armed = 0;
+  $('reset').addEventListener('click', () => { if (!armed) { armed = 1; $('reset').textContent = '한 번 더 누르면 지워집니다'; setTimeout(() => { armed = 0; $('reset').textContent = '처음부터 다시'; }, 3000); return; } armed = 0; S = fresh(); D = derived(); resetScene(); $('resultBox').innerHTML = ''; save(); renderAll(); $('reset').textContent = '처음부터 다시'; });
+  window.addEventListener('resize', fit); fit();
+  if (S.ended) { phase = 4; ['hanwoo', 'p_green', 'holstein', 'p_blue', 'p_kid', 'heuku', 'p_grey', 'white'].forEach((k, i) => returners.push({ t0: 0, i, k })); showResult(); }
+  renderAll();
+  document.fonts.load('12px Galmuri11').then(() => { txtCache.clear(); for (const k in bgCache) delete bgCache[k]; });
+  requestAnimationFrame(frame);
+  window.claude?.hot?.snapshot?.(() => ({ save: S }));
+  window.__barn = { S: () => S, NODES, NODE, buy, fixTap, lossAndFix, D: () => D, fmt, showTab, initAudio, ctx: () => AC, out: () => master, cv };
+}
+window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
+</script>
